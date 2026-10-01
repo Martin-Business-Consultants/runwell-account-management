@@ -3,9 +3,11 @@
   <%= link_to "Today", account_management_root_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_root_path)) %>
   <%= link_to term(:client, count: 2), account_management_clients_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_clients_path)) %>
   <%= link_to "Meetings", account_management_meetings_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_meetings_path)) %>
+  <%= link_to "Calls", account_management_calls_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_calls_path)) %>
   <%= link_to "Contacts", account_management_touches_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_touches_path)) %>
   <%= link_to "Access register", account_management_accesses_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_accesses_path)) %>
   <%= link_to "Weekly updates", account_management_weekly_updates_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_weekly_updates_path)) %>
+  <%= link_to "People", account_management_people_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_people_path)) %>
   <%= link_to "Team", account_management_team_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_team_path)) %>
   <%= link_to "Playbook", account_management_playbook_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_playbook_path)) %>
   <%= link_to "Guide", account_management_guide_path, class: class_names("btn txt-small", "btn--reversed": current_page?(account_management_guide_path)) %>

@@ -1,0 +1,62 @@
+<% @page_title = "People" %>
+<% vocabulary = AccountManagement::Expertise.vocabulary %>
+
+<%= render "account_management/links" %>
+
+<section class="panel shadow center index-table">
+  <p class="txt-small txt-subtle margin-none pad">What each person is good at decides who gets the work from a call. Tags are free: <%= vocabulary.first(10).join(", ") %>, or your own.</p>
+  <table class="data-table">
+    <thead>
+      <tr><th>Person</th><th>Expertise</th><th class="data-table__number">Open <%= term(:work).downcase %></th><th class="data-table__number">Leads</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @people.each do |person| %>
+        <%# herb:key person.id %>
+        <% expertise = @expertise[person.id] %>
+        <tr data-filter-target="item">
+          <td>
+            <span class="flex align-center gap-half">
+              <%= person_tag person %>
+              <span><%= person.display_name %></span>
+              <% if @members.include?(person.id) %>
+                <span class="txt-x-small txt-subtle">account management</span>
+              <% end %>
+            </span>
+          </td>
+          <td>
+            <% if expertise&.tags.present? %>
+              <span class="flex flex-wrap gap-half">
+                <% expertise.tags.each do |tag| %>
+                  <%# herb:key tag %>
+                  <span class="accounts-tag txt-x-small"><%= tag %></span>
+                <% end %>
+              </span>
+            <% else %>
+              <span class="txt-subtle txt-small">none yet</span>
+            <% end %>
+          </td>
+          <td class="data-table__number"><%= @open_work.fetch(person.id, 0) %></td>
+          <td class="data-table__number"><%= @leads.fetch(person.id, 0) %></td>
+          <td>
+            <% if can?(:manage_accounts) %>
+              <details class="txt-align-start">
+                <summary class="btn txt-x-small">Edit</summary>
+                <%= form_with url: account_management_person_path(person), method: :patch, scope: :expertise, namespace: dom_id(person), class: "flex flex-column gap-half txt-small margin-block-start-half" do |form| %>
+                  <%= form.text_field :tags, value: expertise&.tags&.join(", "), list: "expertise_vocabulary", class: "input", autocomplete: "off", placeholder: "code, design, seo…", aria: { label: "Expertise" } %>
+                  <%= form.text_field :note, value: expertise&.note, class: "input", autocomplete: "off", placeholder: "A note (WordPress, Shopify, Meta ads…)", aria: { label: "Note" } %>
+                  <button type="submit" class="btn btn--link txt-x-small">Save</button>
+                <% end %>
+              </details>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <datalist id="expertise_vocabulary">
+    <% vocabulary.each do |tag| %>
+      <%# herb:key tag %>
+      <option value="<%= tag %>"></option>
+    <% end %>
+  </datalist>
+</section>

@@ -1,0 +1,28 @@
+<% @page_title = "Calls" %>
+
+<%= render "account_management/links" %>
+
+<% if @calls.any? %>
+  <section class="panel shadow center index-table">
+    <table class="data-table" data-controller="pagination" data-pagination-paginate-on-intersection-value="true" data-pagination-discard-frame-value="true">
+      <thead>
+        <tr><th>When</th><th><%= term(:client) %></th><th>About</th><th class="data-table__number"><%= term(:work) %></th><th>By</th></tr>
+      </thead>
+      <tbody id="<%= pagination_frame_id_for(:call_rows, @page.number) %>">
+        <% @calls.each do |call| %>
+          <%# herb:key call.id %>
+          <tr data-filter-target="item">
+            <td class="txt-nowrap"><%= l call.happened_at, format: :short %></td>
+            <td><%= call.client.name %></td>
+            <td><%= link_to call.summary, account_management_call_path(call), class: "txt-ink" %></td>
+            <td class="data-table__number"><%= call.items.where(item_type: "Todo").count %></td>
+            <td><%= person_tag call.user, fallback: "Nobody" %></td>
+          </tr>
+        <% end %>
+        <%= table_next_page_row :call_rows, @page, columns: 5 %>
+      </tbody>
+    </table>
+  </section>
+<% else %>
+  <div class="blank-slate">No calls debriefed yet. After a call, open the <%= term(:client).downcase %>’s Account management tab and press Debrief a call, or paste your notes into your AI app.</div>
+<% end %>

@@ -1,0 +1,93 @@
+<% @page_title = @call.label %>
+<% content_for :header do %>
+  <%= parent_page @client.name, client_path(@client, tab: "plugin-account_management") %>
+<% end %>
+
+<section class="settings settings--split">
+  <div class="settings__panel panel shadow txt-align-start">
+    <h1 class="page-title"><%= @call.summary %></h1>
+
+    <% if (todos = @call.todos).any? %>
+      <section class="settings__section">
+        <header>
+          <h2 class="divider"><%= term(:work) %> <span class="txt-subtle"><%= todos.size %></span></h2>
+        </header>
+        <ul class="settings__scrollable-list">
+          <% todos.each do |todo| %>
+            <%# herb:key todo.id %>
+            <li class="flex align-center gap-half txt-small" data-filter-target="item">
+              <%= link_to todo_path(todo), class: "txt-ink txt-align-start min-width flex-item-grow" do %>
+                <strong><%= todo.title %></strong>
+                <div class="txt-x-small txt-subtle"><%= todo.engagement.ref %> <%= todo.engagement.title %><% if todo.due_on %> · due <%= l todo.due_on, format: :short %><% end %></div>
+              <% end %>
+              <%= person_tag todo.owner, fallback: "Unassigned" %>
+              <%= status_tag todo.status.humanize %>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
+
+    <% if (commitments = @call.commitments).any? %>
+      <section class="settings__section">
+        <header>
+          <h2 class="divider">Commitments <span class="txt-subtle"><%= commitments.size %></span></h2>
+        </header>
+        <ul class="settings__scrollable-list">
+          <% commitments.each do |commitment| %>
+            <%# herb:key commitment.id %>
+            <li class="flex align-center gap-half txt-small">
+              <div class="txt-align-start min-width flex-item-grow">
+                <strong><%= commitment.description %></strong>
+                <div class="txt-x-small txt-subtle"><%= commitment.owner_kind == "us" ? "ours" : "theirs" %> · due <%= l commitment.due_on, format: :short %></div>
+              </div>
+              <% if commitment.user %>
+                <%= person_tag commitment.user %>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
+
+    <% if (requests = @call.requests).any? %>
+      <section class="settings__section">
+        <header>
+          <h2 class="divider">Requests to triage <span class="txt-subtle"><%= requests.size %></span></h2>
+        </header>
+        <ul class="settings__scrollable-list">
+          <% requests.each do |request| %>
+            <%# herb:key request.id %>
+            <li class="txt-small"><%= link_to request.subject, request_path(request), class: "txt-link" %></li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
+
+    <% if @call.note %>
+      <section class="settings__section">
+        <header>
+          <h2 class="divider">Notes</h2>
+        </header>
+        <div class="txt-small accounts-paper"><%= rich_text @call.note.body %></div>
+      </section>
+    <% end %>
+  </div>
+
+  <aside class="settings__panel settings__panel--side panel shadow txt-align-start">
+    <dl class="record-facts">
+      <dt><%= term(:client) %></dt>
+      <dd><%= link_to @client.name, client_path(@client, tab: "plugin-account_management"), class: "txt-link" %></dd>
+      <dt>When</dt>
+      <dd><%= l @call.happened_at, format: :long %></dd>
+      <dt>How</dt>
+      <dd><%= AccountManagement::Call::CHANNELS.fetch(@call.channel) %></dd>
+      <dt>Recorded by</dt>
+      <dd><%= person_tag @call.user, fallback: "Nobody" %></dd>
+      <% if @call.meeting %>
+        <dt>Meeting</dt>
+        <dd><%= link_to @call.meeting.title, account_management_meeting_path(@call.meeting), class: "txt-link" %></dd>
+      <% end %>
+    </dl>
+  </aside>
+</section>

@@ -6,6 +6,10 @@ day, meetings on a rhythm with agendas and recaps drafted from the records, nudg
 owe us, weekly health, who's who at each client, onboarding and offboarding checklists, backup
 leads, an optional weekly digest for clients, the access register, weekly updates and a scorecard.
 
+**After every call**, paste your notes into your AI app and say "debrief this call": it plans todos
+on the right engagements with owners by expertise (Accounts > People), shows you the plan, then
+records the call and everything that came out of it (`debrief_call`, `record_call`).
+
 **[Read the guide](docs/guide.md)**, also in Runwell under Accounts > Guide.
 
 A plugin for [Runwell](https://github.com/Martin-Business-Consultants/runwellv2), the core of an
@@ -25,7 +29,7 @@ Then, in **Settings > Account management**, switch it on for the people who look
 From the command line on the server: `bin/rails "plugins:install[Martin-Business-Consultants/runwell-account-management]"`, then restart
 Runwell.
 
-Needs Runwell 2.1.2 or later. A plugin can use only the gems Runwell bundles.
+Needs Runwell 2.1.3 or later. A plugin can use only the gems Runwell bundles.
 
 ## Updating
 

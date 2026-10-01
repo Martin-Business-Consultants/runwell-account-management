@@ -1,0 +1,37 @@
+<% @page_title = "Debrief a call with #{@client.name}" %>
+<% markdown = @debrief.to_markdown %>
+<% content_for :header do %>
+  <%= parent_page @client.name, client_path(@client, tab: "plugin-account_management") %>
+<% end %>
+
+<section class="settings settings--split">
+  <div class="settings__panel panel shadow txt-align-start">
+    <h1 class="page-title"><%= @page_title %></h1>
+    <p class="txt-small margin-none">Turn your notes from the call into work on the right <%= term(:engagement, count: 2).downcase %>, owned by the right people. In your AI app with Runwell connected, just paste your notes and say <strong>“debrief this call with <%= @client.name %>”</strong>: it reads all of this itself. Or copy it below and paste it with your notes.</p>
+    <div class="flex gap-half">
+      <button type="button" class="btn btn--link txt-small" data-controller="copy-to-clipboard" data-copy-to-clipboard-content-value="<%= markdown %>" data-copy-to-clipboard-success-class="btn--reversed" data-action="copy-to-clipboard#copy">
+        <%= icon_tag "ai" %>
+        <span>Copy for AI</span>
+      </button>
+    </div>
+    <pre class="txt-x-small accounts-brief"><%= markdown %></pre>
+  </div>
+
+  <aside class="settings__panel settings__panel--side panel shadow txt-align-start">
+    <ol class="record-steps txt-small">
+      <li>Paste your notes into your AI app: Claude Code with the <code>runwell</code> CLI, or any app connected to Runwell.</li>
+      <li>It plans the work: each item on the <%= term(:engagement).downcase %> whose scope covers it, owned by whoever’s expertise fits (set on <%= link_to "People", account_management_people_path, class: "txt-link" %>), with commitments and new requests.</li>
+      <li>It shows you the plan before anything is written. Say what to change.</li>
+      <li>Then it records the call: the notes, the contact, and every item at once.</li>
+    </ol>
+    <% if (calls = @client.account_calls.recent.limit(5).to_a).any? %>
+      <h2 class="divider txt-small">Recent calls</h2>
+      <ul class="settings__scrollable-list txt-small">
+        <% calls.each do |call| %>
+          <%# herb:key call.id %>
+          <li><%= link_to call.label, account_management_call_path(call), class: "txt-link" %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  </aside>
+</section>

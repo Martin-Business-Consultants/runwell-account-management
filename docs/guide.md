@@ -53,6 +53,30 @@ The same guide is in Runwell under **Accounts > Guide**.
    for Decisions. Add each **action item** with an owner and a date (they become commitments),
    then send the recap **within a day**.
 
+## After every call: debrief it
+
+Your notes from a call become work on the right engagements, owned by the right people, in a
+minute.
+
+1. **Once:** an owner or manager sets everyone's **expertise** on Accounts > **People** (code,
+   design, content, seo, ads…, or your own words). That's how work finds its owner.
+2. **After the call,** paste your notes into your AI app (Claude Code with the `runwell` CLI, or any
+   app connected to Runwell) and say **"debrief this call with <client>"**. It knows the steps: it
+   reads the client's open engagements and their agreed scope, its people, and the team's expertise
+   and workload (`debrief_call`).
+3. **It shows you the plan first**: each todo with its engagement, owner and due date, the
+   commitments (theirs and ours), requests for anything outside the agreed scope, and health.
+   Nothing is written yet. Say what to change.
+4. **Then it records the call** (`record_call`): the notes as a call note, the contact, and every
+   item at once. It all shows on the call's page, linked from the client's tab.
+
+How it picks: each todo goes on the engagement whose agreed scope covers it; an ask nobody agreed to
+becomes a request to triage, not a todo. The owner is whoever's expertise fits, then whoever has
+less open work; client-facing and coordinating work goes to the client's lead; nobody who's away.
+
+No AI app to hand? The client's tab has **Debrief a call**, with **Copy for AI**: the same brief,
+ready to paste with your notes into any AI.
+
 ## When you're waiting on the client
 
 Their overdue commitments, agreements they haven't decided on, and access we asked for and don't
@@ -114,7 +138,8 @@ counts: an agenda that can still go out on time, or a request not yet due, waits
 
 ## With an AI agent
 
-Everything here is also a tool for a connected AI (Settings > Connected apps). Ask it to start
+Everything here is also a tool for a connected AI (Settings > Connected apps). The **Debrief a
+client call** workflow above is built in: Runwell tells the AI the steps. Otherwise, ask it to start
 with `show_account_today`, log contacts with `log_client_contact`, draft agendas with
 `draft_meeting_agenda`, or preview a nudge with `preview_nudge`. Anything that emails a client asks
 you to confirm first.

@@ -1,6 +1,7 @@
 <%# locals: (client:, pulse:, lead:) %>
 <% touches = client.account_touches.recent.includes(:contact, :user).limit(6).to_a %>
 <% last = pulse.last_contact(client) %>
+<% calls = client.account_calls.recent.includes(:items).limit(3).to_a %>
 <section class="settings__section">
   <header>
     <h2 class="divider">Contact</h2>
@@ -25,7 +26,26 @@
       <% end %>
     </ul>
   <% end %>
+  <% if calls.any? %>
+    <p class="txt-x-small font-weight-bold margin-block-start-half margin-block-end-half">Calls debriefed</p>
+    <ul class="settings__scrollable-list">
+      <% calls.each do |call| %>
+        <%# herb:key call.id %>
+        <li class="flex align-center gap-half txt-small">
+          <%= link_to account_management_call_path(call), class: "txt-ink txt-align-start min-width flex-item-grow" do %>
+            <strong><%= call.summary %></strong>
+            <div class="txt-x-small txt-subtle"><%= l call.happened_at, format: :short %> · <%= pluralize(call.items.count { it.item_type == "Todo" }, "todo") %></div>
+          <% end %>
+          <%= person_tag call.user %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
   <div class="section-actions">
+    <%= link_to account_management_client_debrief_path(client), class: "btn btn--link txt-small" do %>
+      <%= icon_tag "ai" %>
+      <span>Debrief a call</span>
+    <% end %>
     <details class="txt-align-start">
       <summary class="btn txt-small"><%= icon_tag "add" %> <span>Log a contact</span></summary>
       <%= form_with url: account_management_touches_path, scope: :touch, namespace: "touch_#{client.id}", class: "flex flex-column gap-half txt-small margin-block-start-half", data: { turbo_action: "advance" } do |form| %>

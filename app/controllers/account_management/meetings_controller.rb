@@ -15,10 +15,10 @@ module AccountManagement
       params: { meeting: { title: "string", starts_on: "date", starts_at_time: "string", owner_id: "integer", agenda: "text", recap: "text" } }
     agent_tool :send_meeting_agenda, on: :send_agenda, title: "Send a meeting’s agenda",
       description: "contact_ids: the client's contacts to email it to. Or, sent another way (a calendar invite), leave them out and say how in via. Stamps when it went out, for good.",
-      params: { contact_ids: [ "integer" ], via: "string" }, confirm: "With contacts, it emails them the agenda. Either way the agenda is final once sent."
+      params: { contact_ids: "integer[]", via: "string" }, confirm: "With contacts, it emails them the agenda. Either way the agenda is final once sent."
     agent_tool :send_meeting_recap, on: :send_recap, title: "Send a meeting’s recap",
       description: "After the meeting: the decisions in the recap, with its action items listed. contact_ids to email it, or via for another way. Add action items first with add_meeting_action_item.",
-      params: { contact_ids: [ "integer" ], via: "string" }, confirm: "With contacts, it emails them the recap and its action items. Either way the recap is final once sent."
+      params: { contact_ids: "integer[]", via: "string" }, confirm: "With contacts, it emails them the recap and its action items. Either way the recap is final once sent."
     agent_tool :draft_meeting_agenda, on: :draft_agenda, title: "Draft a meeting's agenda from the records",
       params: { replace: "boolean" },
       description: "Fills an empty agenda (until it's sent; replace: true overwrites one already written) with what's open from last time, what we and the client owe, decisions waiting on them and what's coming up. Edit it after with update_meeting."

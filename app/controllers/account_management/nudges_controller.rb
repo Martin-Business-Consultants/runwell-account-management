@@ -11,7 +11,7 @@ module AccountManagement
       params: { subject: "string!" }
     agent_tool :send_nudge, on: :create, title: "Send a nudge to a client",
       description: "subject as for preview_nudge; contact_ids (the decision-makers and day-to-day contacts by default), and the message's title and body, edited if you like. It's logged as contact.",
-      params: { subject: "string!", contact_ids: [ "integer" ], nudge: { title: "string", body: "text" } }, confirm: "It emails the client's contacts."
+      params: { subject: "string!", contact_ids: "integer[]", nudge: { title: "string", body: "text" } }, confirm: "It emails the client's contacts."
 
     def new
       @recipients = ContactProfile.recipients(@client)

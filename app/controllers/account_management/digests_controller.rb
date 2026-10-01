@@ -10,7 +10,7 @@ module AccountManagement
     agent_tool :update_client_digest, on: :update, title: "Change this week's digest before it's sent", params: { digest: { body: "text" } }
     agent_tool :send_client_digest, on: :deliver, title: "Send this week's digest to the client",
       description: "contact_ids: who it goes to (the decision-makers and day-to-day contacts by default). Final once sent; it counts as contact.",
-      params: { contact_ids: [ "integer" ] }, confirm: "It emails the client's contacts this week's digest."
+      params: { contact_ids: "integer[]" }, confirm: "It emails the client's contacts this week's digest."
 
     def show
       @recipients = ContactProfile.recipients(@client)

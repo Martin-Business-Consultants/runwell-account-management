@@ -73,6 +73,19 @@
 
   <section class="settings__section">
     <header>
+      <h2 class="divider">After every call: debrief it</h2>
+    </header>
+    <ol>
+      <li><strong>Once,</strong> set everyone’s expertise on <%= link_to "People", account_management_people_path, class: "txt-link" %> (code, design, content, seo, ads…). That’s how work finds its owner.</li>
+      <li><strong>After the call,</strong> paste your notes into your AI app (Claude Code with the <code>runwell</code> CLI, or any app connected to Runwell) and say <strong>“debrief this call with &lt;<%= client %>&gt;”</strong>. It reads the <%= client %>’s open <%= term(:engagement, count: 2).downcase %> and agreed scope, its people, and the team’s expertise and workload.</li>
+      <li><strong>It shows you the plan first:</strong> each todo with its <%= term(:engagement).downcase %>, owner and due date, the commitments, requests for anything outside the agreed scope, and health. Nothing is written yet. Say what to change.</li>
+      <li><strong>Then it records the call:</strong> the notes, the contact and every item at once, on the call’s page.</li>
+    </ol>
+    <p class="txt-small txt-subtle">Each todo goes on the <%= term(:engagement).downcase %> whose agreed scope covers it; anything nobody agreed to becomes a request. The owner is whoever’s expertise fits, then whoever has less open work; client-facing work goes to the lead; nobody who’s away. No AI app to hand? The <%= client %>’s tab has <strong>Debrief a call</strong> with <strong>Copy for AI</strong>.</p>
+  </section>
+
+  <section class="settings__section">
+    <header>
       <h2 class="divider">When you’re waiting on the <%= client %></h2>
     </header>
     <p>Their overdue commitments, agreements they haven’t decided on, and access we asked for show under <strong>Waiting on them</strong> on the <%= client %>’s tab, and on Today once they’re <%= (AccountManagement::Playbook::WAITING_NUDGE / 1.day).round %> days old. Press <strong>Nudge</strong>: Runwell drafts a short email to the right people, you read it and send it, and it’s logged as contact. Replies come to you.</p>
@@ -135,6 +148,6 @@
     <header>
       <h2 class="divider">With an AI agent</h2>
     </header>
-    <p>Everything here is a tool for a connected AI (Settings &gt; Connected apps). Ask it to start with <code>show_account_today</code>, log contacts with <code>log_client_contact</code>, draft agendas with <code>draft_meeting_agenda</code>, or preview a nudge with <code>preview_nudge</code>. Anything that emails a <%= client %> asks you to confirm first.</p>
+    <p>Everything here is a tool for a connected AI (Settings &gt; Connected apps), and the debrief workflow above is built in. Otherwise, ask it to start with <code>show_account_today</code>, log contacts with <code>log_client_contact</code>, draft agendas with <code>draft_meeting_agenda</code>, or preview a nudge with <code>preview_nudge</code>. Anything that emails a <%= client %> asks you to confirm first.</p>
   </section>
 </div>

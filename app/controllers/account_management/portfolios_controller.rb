@@ -6,7 +6,7 @@ module AccountManagement
     agent_tool :show_my_clients, on: :show, title: "Show the clients you work with"
     agent_tool :choose_my_clients, on: :update, title: "Choose the clients you work with",
       description: "client_scope: all (every client) or selected (client_ids). The clients you lead or back up are always included. away_until: the last day you're away, blank when back; while away your clients go to their backups.",
-      params: { member: { client_scope: Member::SCOPES.keys, client_ids: [ "integer" ], away_until: "date" } }
+      params: { member: { client_scope: Member::SCOPES.keys, client_ids: "integer[]", away_until: "date" } }
 
     def show
       @clients = ::Client.active.ordered

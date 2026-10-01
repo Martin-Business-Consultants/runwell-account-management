@@ -22,6 +22,8 @@ module AccountManagement
           resource :settings, only: :show
           resources :members, only: %i[create update destroy]
           resource :portfolio, only: %i[show update]
+          resources :people, only: %i[index update]
+          resources :calls, only: %i[index show]
           resources :scorecards, only: :show
           resources :meetings do
             member do
@@ -46,6 +48,8 @@ module AccountManagement
             resource :digest, only: %i[show update] do
               post :deliver
             end
+            resource :debrief, only: :show
+            resources :calls, only: :create
           end
           resources :contacts, only: [] do
             resource :profile, only: :update, controller: "contact_profiles"
@@ -71,6 +75,7 @@ module AccountManagement
         has_many :account_health_checks, class_name: "AccountManagement::HealthCheck", dependent: :delete_all
         has_many :account_meeting_series, class_name: "AccountManagement::MeetingSeries", dependent: :destroy
         has_many :account_checklists, class_name: "AccountManagement::Checklist", dependent: :delete_all
+        has_many :account_calls, class_name: "AccountManagement::Call", dependent: :destroy
         has_many :account_meetings, class_name: "AccountManagement::Meeting", dependent: :destroy
         has_many :account_accesses, class_name: "AccountManagement::Access", dependent: :destroy
       end
@@ -82,12 +87,13 @@ module AccountManagement
         has_many :account_meetings, class_name: "AccountManagement::Meeting", foreign_key: :owner_id, dependent: :nullify
         has_many :weekly_updates, class_name: "AccountManagement::WeeklyUpdate", dependent: :destroy
         has_one :account_member, class_name: "AccountManagement::Member", dependent: :destroy
+        has_one :account_expertise, class_name: "AccountManagement::Expertise", dependent: :destroy
       end
     end
 
     config.to_prepare do
       Runwell::Plugins.register :account_management, name: "Account management", version: AccountManagement::VERSION, author: "Runwell",
-        enabled_by_default: false, requires: ">= 2.1.2", homepage: "https://github.com/Martin-Business-Consultants/runwell-account-management",
+        enabled_by_default: false, requires: ">= 2.1.3", homepage: "https://github.com/Martin-Business-Consultants/runwell-account-management",
         description: "Keeps every client in play for the project managers it’s switched on for: a Today list across their clients, contacts logged and quiet clients flagged, requests answered within a business day, meeting rhythms with drafted agendas and recaps, nudges for what clients owe us, weekly health, who’s who at each client, onboarding and offboarding checklists, backup leads, and an optional weekly digest for clients."
       Runwell::Plugins.nav :account_management, "Accounts", -> { account_management_root_path if AccountManagement::Member.active?(Current.user) }
       Runwell::Plugins.settings :account_management, "Account management", -> { account_management_settings_path }
@@ -100,6 +106,13 @@ module AccountManagement
         context: ->(record) { AccountManagement::Meeting::RECORD_TYPES.include?(record.class.name) ? record : record.try(:engagement) || record.try(:client) }
       Runwell::Plugins.briefing :account_management, "Accounts need you", partial: "account_management/briefing/item",
         items: ->(user) { AccountManagement::Attention.items(user) }
+      Runwell::Plugins.agent_workflow :account_management, "Debrief a client call", <<~TEXT if Runwell::Plugins.respond_to?(:agent_workflow)
+        When someone shares notes from a call with a client (pasted, or a file), turn them into work:
+        1. Find the client (`search`), then `debrief_call --client_id <id>`: its people, open engagements with agreed scope, open work, and the team with expertise and workload.
+        2. Plan todos (each on the engagement whose scope covers it, owner by expertise, less open work breaks ties, never someone away), commitments (theirs and ours, dated), requests (asks outside the agreed scope) and health.
+        3. `record_call` with `preview: true`; show the person the plan as a table (engagement, todo, owner, due) and change what they say.
+        4. `record_call` without preview. It records the notes, logs the contact and makes everything at once.
+      TEXT
       Runwell::Plugins.nightly :account_management, -> { AccountManagement::MeetingSeries.active.find_each(&:ensure_next!) }
       Runwell::Plugins.stylesheet :account_management, "account_management/accounts"
     end
