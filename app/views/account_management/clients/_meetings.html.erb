@@ -1,0 +1,51 @@
+<%# locals: (client:) %>
+<% upcoming = AccountManagement::Meeting.for(client).upcoming.includes(:client, :owner).limit(5).to_a %>
+<% recent = AccountManagement::Meeting.for(client).where(starts_at: ...Time.current).recent.includes(:client, :owner).limit(5).to_a %>
+<% rhythms = client.account_meeting_series.active.to_a %>
+<section class="settings__section">
+  <header>
+    <h2 class="divider">Meetings</h2>
+  </header>
+  <% rhythms.each do |series| %>
+    <%# herb:key series.id %>
+    <div class="flex align-center gap-half txt-small margin-block-end-half">
+      <%= icon_tag "refresh" %>
+      <span class="min-width flex-item-grow"><strong><%= series.title %></strong> <span class="txt-subtle"><%= series.label %></span></span>
+      <%= button_to "Stop", account_management_client_meeting_series_path(client, series), method: :delete, class: "btn txt-x-small" %>
+    </div>
+  <% end %>
+  <ul class="settings__scrollable-list">
+    <% (upcoming + recent).each do |meeting| %>
+      <%# herb:key meeting.id %>
+      <%= render "account_management/meetings/row", meeting: meeting %>
+    <% end %>
+  </ul>
+  <% if upcoming.empty? && recent.empty? %>
+    <p class="txt-subtle txt-small margin-none">No meetings yet. Set a rhythm so the next one is always planned; each gets an agenda a day ahead and a recap within a day after.</p>
+  <% end %>
+  <div class="section-actions">
+    <% if rhythms.empty? %>
+      <details class="txt-align-start">
+        <summary class="btn txt-small"><%= icon_tag "refresh" %> <span>Set a rhythm</span></summary>
+        <%= form_with url: account_management_client_meeting_series_index_path(client), scope: :meeting_series, namespace: "series_#{client.id}", class: "flex flex-column gap-half txt-small margin-block-start-half", data: { turbo_action: "advance" } do |form| %>
+          <%= form.text_field :title, required: true, class: "input full-width", autocomplete: "off", placeholder: "Weekly check-in, monthly review…", aria: { label: "What it’s for" } %>
+          <div class="flex flex-wrap gap-half">
+            <%= form.select :cadence, AccountManagement::MeetingSeries::CADENCES.invert, {}, class: "input input--select", aria: { label: "How often" } %>
+            <%= date_input form, :starts_on, value: Date.current.next_week(:tuesday), required: true, class: "input", aria: { label: "First one" } %>
+            <%= form.time_field :time_of_day, value: "10:00", required: true, class: "input", aria: { label: "Starts, our time" } %>
+            <%= form.select :owner_id, account_people_options, { include_blank: "Run by the lead" }, class: "input input--select", aria: { label: "Runs it" } %>
+          </div>
+          <p class="txt-x-small txt-subtle margin-none">Monthly keeps the first one’s weekday of the month, e.g. the second Tuesday.</p>
+          <button type="submit" class="btn btn--link txt-small">Start it</button>
+        <% end %>
+      </details>
+    <% end %>
+    <%= link_to new_account_management_meeting_path(record: QuickAction.value_for(client)), class: "btn txt-small" do %>
+      <%= icon_tag "add" %>
+      <span>Plan a meeting</span>
+    <% end %>
+    <% if recent.size == 5 %>
+      <%= link_to "Every meeting", account_management_meetings_path(state: "all", client_id: client.id), class: "btn txt-small" %>
+    <% end %>
+  </div>
+</section>

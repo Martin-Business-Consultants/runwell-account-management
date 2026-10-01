@@ -1,6 +1,12 @@
 # Account management for Runwell
 
-One lead per client, meetings with an agenda and recap on time, an access register, weekly updates and a scorecard.
+Keeps every client in play for the project managers it's switched on for: a Today list across
+their clients, every contact logged and quiet clients flagged, requests answered within a business
+day, meetings on a rhythm with agendas and recaps drafted from the records, nudges for what clients
+owe us, weekly health, who's who at each client, onboarding and offboarding checklists, backup
+leads, an optional weekly digest for clients, the access register, weekly updates and a scorecard.
+
+**[Read the guide](docs/guide.md)**, also in Runwell under Accounts > Guide.
 
 A plugin for [Runwell](https://github.com/Martin-Business-Consultants/runwellv2), the core of an
 agency's project management. It owns its tables (`account_management_*`), points at core records by id, and
@@ -12,10 +18,14 @@ In Runwell, **Settings > Plugins > Add a plugin**: press Install on Account mana
 `Martin-Business-Consultants/runwell-account-management`. Runwell downloads the latest release onto the server, restarts and creates the
 plugin's tables. It starts off: switch it on in Settings > Plugins.
 
+Then, in **Settings > Account management**, switch it on for the people who look after clients
+(your project managers). Each of them chooses the clients they work with (all, or a group) in
+**Accounts > My clients**. People it isn't on for don't see it.
+
 From the command line on the server: `bin/rails "plugins:install[Martin-Business-Consultants/runwell-account-management]"`, then restart
 Runwell.
 
-Needs Runwell 2.1.0 or later. A plugin can use only the gems Runwell bundles.
+Needs Runwell 2.1.2 or later. A plugin can use only the gems Runwell bundles.
 
 ## Updating
 

@@ -1,0 +1,22 @@
+<%# locals: (client:) %>
+<% accesses = AccountManagement::Access.for(client).ordered.to_a %>
+<section class="settings__section">
+  <header>
+    <h2 class="divider">Accounts and access <span class="txt-subtle"><%= (count = accesses.count { !it.in_order? }).positive? ? "#{count} needing attention" : "" %></span></h2>
+  </header>
+  <ul class="settings__scrollable-list">
+    <% accesses.each do |access| %>
+      <%# herb:key access.id %>
+      <%= render "account_management/accesses/row", access: access %>
+    <% end %>
+  </ul>
+  <% if accesses.empty? %>
+    <p class="txt-subtle txt-small margin-none">No outside accounts recorded. Add the pages, ad accounts, pixels, analytics and domains the work depends on, with who owns each and our access.</p>
+  <% end %>
+  <div class="section-actions">
+    <%= link_to new_account_management_access_path(client_id: client.id), class: "btn txt-small" do %>
+      <%= icon_tag "add" %>
+      <span>Add an account</span>
+    <% end %>
+  </div>
+</section>

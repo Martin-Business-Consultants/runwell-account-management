@@ -16,6 +16,7 @@ module AccountManagement
     belongs_to :engagement, class_name: "::Engagement", optional: true
     belongs_to :owner, class_name: "::User", optional: true
     belongs_to :created_by, class_name: "::User", optional: true
+    belongs_to :series, class_name: "AccountManagement::MeetingSeries", optional: true, inverse_of: :meetings
     has_many :items, class_name: "AccountManagement::MeetingItem", dependent: :destroy
     has_many :commitments, through: :items
 
@@ -90,8 +91,11 @@ module AccountManagement
       false if Time.current > recap_due_at
     end
 
-    # Who it goes to by default: the client's active contacts with an email.
-    def recipients = client.contacts.active.where.not(email: [ nil, "" ]).ordered
+    # Who it goes to by default: the decision-makers and day-to-day contacts, or every active
+    # contact with an email when nobody is marked (ContactProfile).
+    def recipients = ContactProfile.recipients(client)
+
+    def draft = AgendaDraft.new(self)
 
     # Mark the agenda or recap sent: emailed to contacts from here, or sent another way (a
     # calendar invite, the client's own tool), said in via. Stamps the time, for good.

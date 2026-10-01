@@ -19,6 +19,12 @@ module AccountManagement
     agent_tool :send_meeting_recap, on: :send_recap, title: "Send a meeting’s recap",
       description: "After the meeting: the decisions in the recap, with its action items listed. contact_ids to email it, or via for another way. Add action items first with add_meeting_action_item.",
       params: { contact_ids: [ "integer" ], via: "string" }, confirm: "With contacts, it emails them the recap and its action items. Either way the recap is final once sent."
+    agent_tool :draft_meeting_agenda, on: :draft_agenda, title: "Draft a meeting's agenda from the records",
+      params: { replace: "boolean" },
+      description: "Fills an empty agenda (until it's sent; replace: true overwrites one already written) with what's open from last time, what we and the client owe, decisions waiting on them and what's coming up. Edit it after with update_meeting."
+    agent_tool :draft_meeting_recap, on: :draft_recap, title: "Start a meeting's recap from its agenda",
+      params: { replace: "boolean" },
+      description: "After the meeting, into an empty recap (replace: true overwrites): decisions to fill in, the agenda's points, and room for action items (add_meeting_action_item)."
     agent_tool :cancel_meeting, on: :cancel, title: "Cancel a client meeting"
     agent_tool :delete_meeting, on: :destroy, title: "Delete a meeting planned by mistake", description: "Only before its agenda goes out."
     require_permission :delete_records, only: :destroy
@@ -49,6 +55,7 @@ module AccountManagement
       record ||= ::Client.find_by(id: params[:client_id])
       @meeting = Meeting.new(starts_on: Date.tomorrow, starts_at_time: "10:00")
       @meeting.about = record if record
+      @meeting.agenda = @meeting.draft.agenda_html if @meeting.client
     end
 
     def create
@@ -56,7 +63,7 @@ module AccountManagement
       record = record.try(:engagement) || record.try(:client) unless record.nil? || Meeting::RECORD_TYPES.include?(record.class.name)
       @meeting = Meeting.new(meeting_params.merge(created_by: Current.user))
       @meeting.about = record if record
-      @meeting.owner ||= @meeting.client&.account_lead&.user || Current.user
+      @meeting.owner ||= @meeting.client&.account_lead&.responsible_user || Member.person(Current.user)
 
       if @meeting.client.nil?
         redirect_back fallback_location: account_management_meetings_path, alert: "Choose the #{helpers.term(:client).downcase} or #{helpers.term(:engagement).downcase} it’s with."
@@ -77,6 +84,22 @@ module AccountManagement
       else
         render :edit, status: :unprocessable_entity
       end
+    end
+
+    def draft_agenda
+      return redirect_to(account_management_meeting_path(@meeting), alert: "The agenda is out, so it’s final.") if @meeting.agenda_sent?
+      return redirect_to(edit_account_management_meeting_path(@meeting), alert: "The agenda already has words in it; edit it instead.") if @meeting.agenda.present? && !ActiveModel::Type::Boolean.new.cast(params[:replace])
+
+      @meeting.update!(agenda: @meeting.draft.agenda_html)
+      redirect_to edit_account_management_meeting_path(@meeting), notice: "Drafted the agenda from the records. Read it through, then send it."
+    end
+
+    def draft_recap
+      return redirect_to(account_management_meeting_path(@meeting), alert: "The recap is out, so it’s final.") if @meeting.recap_sent?
+      return redirect_to(edit_account_management_meeting_path(@meeting), alert: "The recap already has words in it; edit it instead.") if @meeting.recap.present? && !ActiveModel::Type::Boolean.new.cast(params[:replace])
+
+      @meeting.update!(recap: @meeting.draft.recap_html)
+      redirect_to edit_account_management_meeting_path(@meeting), notice: "Started the recap from the agenda. Fill in the decisions, then add the action items."
     end
 
     def send_agenda = send_paper(:agenda)

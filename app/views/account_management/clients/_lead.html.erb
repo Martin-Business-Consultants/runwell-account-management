@@ -1,0 +1,53 @@
+<%# locals: (client:, lead:) %>
+<% people = account_people_options %>
+<section class="settings__section" id="account_management">
+  <header>
+    <h2 class="divider">Who looks after it</h2>
+  </header>
+  <div class="flex align-center gap-half txt-small">
+    <span class="font-weight-bold">Lead</span>
+    <%= person_tag lead&.user, fallback: "Nobody leads it" %>
+    <hr class="separator--horizontal flex-item-grow txt-subtle" aria-hidden="true">
+    <% if can?(:manage_accounts) %>
+      <%= form_with url: account_management_client_lead_path(client), method: :patch, namespace: "lead_#{client.id}", class: "flex align-center gap-half", data: { controller: "form", action: "change->form#submit" } do |form| %>
+        <%= form.select :user_id, people, { include_blank: "Nobody", selected: lead&.user_id }, class: "input input--select txt-small", aria: { label: "Who leads it" } %>
+      <% end %>
+    <% end %>
+  </div>
+  <% if lead %>
+    <div class="flex align-center gap-half txt-small margin-block-start-half">
+      <span class="font-weight-bold">Backup</span>
+      <%= person_tag lead.backup_user, fallback: "No backup" %>
+      <% if lead.covering? %>
+        <span class="txt-x-small txt-subtle">covering while <%= lead.user.display_name %> is away</span>
+      <% end %>
+      <hr class="separator--horizontal flex-item-grow txt-subtle" aria-hidden="true">
+      <%= form_with url: account_management_client_lead_path(client), method: :patch, namespace: "backup_#{client.id}", class: "flex align-center gap-half", data: { controller: "form", action: "change->form#submit" } do |form| %>
+        <%= form.select :backup_user_id, people.reject { it.last == lead.user_id }, { include_blank: "No backup", selected: lead.backup_user_id }, class: "input input--select txt-small", aria: { label: "Who backs it up" } %>
+      <% end %>
+    </div>
+    <div class="flex flex-wrap align-center gap-half txt-small margin-block-start-half">
+      <%= form_with url: account_management_client_lead_path(client), method: :patch, namespace: "cadence_#{client.id}", class: "flex align-center gap-half", data: { controller: "form", action: "change->form#submit" } do |form| %>
+        <span class="font-weight-bold">Hears from us every</span>
+        <%= form.number_field :contact_every_days, value: lead.contact_every_days, min: 1, max: 90, placeholder: AccountManagement::Playbook::CONTACT_EVERY, class: "input accounts-days", aria: { label: "Days between contacts" } %>
+        <span>days</span>
+      <% end %>
+      <hr class="separator--horizontal flex-item-grow txt-subtle" aria-hidden="true">
+      <%= form_with url: account_management_client_lead_path(client), method: :patch, namespace: "digest_#{client.id}", class: "flex align-center gap-half", data: { controller: "form", action: "change->form#submit" } do %>
+        <%= hidden_field_tag :digest_enabled, "0", id: nil %>
+        <label class="flex align-center gap-half">
+          <%= check_box_tag :digest_enabled, "1", lead.digest_enabled?, id: "digest_enabled_#{client.id}" %>
+          <span>Weekly digest to the <%= term(:client).downcase %></span>
+        </label>
+      <% end %>
+    </div>
+    <p class="txt-x-small txt-subtle margin-block-start-half">
+      <%= lead.user.display_name %> answers for its meetings, commitments and accounts, and covers it in their weekly update. <%= link_to "Scorecard", account_management_scorecard_path(lead.user), class: "txt-link" %>
+      <% if lead.digest_enabled? %>
+        · <%= link_to "This week’s digest", account_management_client_digest_path(client), class: "txt-link" %>
+      <% end %>
+    </p>
+  <% elsif !can?(:manage_accounts) %>
+    <p class="txt-x-small txt-subtle margin-block-start-half">Someone who may manage accounts chooses its lead.</p>
+  <% end %>
+</section>

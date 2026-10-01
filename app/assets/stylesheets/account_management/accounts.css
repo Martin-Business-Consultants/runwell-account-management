@@ -3,7 +3,7 @@
   .accounts-metrics {
     display: grid;
     gap: var(--inline-space);
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-block-end: var(--block-space);
 
     @media (max-width: 900px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -93,5 +93,78 @@
     margin: 0 0 var(--block-space);
     padding: 0.6em 1em;
     text-align: start;
+  }
+
+  /* Today: the snooze menu beside each item. */
+  .accounts-snooze {
+    position: relative;
+
+    > summary { list-style: none; }
+    > summary::-webkit-details-marker { display: none; }
+  }
+
+  .accounts-snooze__menu {
+    background: var(--color-canvas);
+    border: 1px solid var(--color-ink-lighter);
+    border-radius: calc(0.5em * var(--radius-scale, 1));
+    box-shadow: var(--shadow);
+    inset-block-start: calc(100% + 0.25em);
+    inset-inline-end: 0;
+    min-inline-size: 9em;
+    padding: 0.5em;
+    position: absolute;
+    z-index: 2;
+  }
+
+  /* My clients: the client checkboxes, in columns. */
+  .accounts-checks {
+    display: grid;
+    gap: 0.35em var(--inline-space);
+    grid-template-columns: repeat(auto-fill, minmax(14em, 1fr));
+  }
+
+  /* A client's cadence, in days. */
+  .accounts-days { inline-size: 5em; }
+
+  /* A client's recent weeks of health. */
+  .accounts-trend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25em;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Checklist steps: a tick that's a button for manual steps, a mark for automatic ones. */
+  .accounts-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .accounts-steps__form { display: contents; }
+
+  .accounts-steps__check {
+    --icon-size: 0.8em;
+
+    align-items: center;
+    block-size: 1.25em;
+    border: 1px solid var(--color-ink-light);
+    border-radius: var(--radius-control);
+    display: inline-flex;
+    flex-shrink: 0;
+    inline-size: 1.25em;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .accounts-steps__check--done {
+    background: var(--color-positive);
+    border-color: var(--color-positive);
+    color: var(--color-ink-inverted);
   }
 }

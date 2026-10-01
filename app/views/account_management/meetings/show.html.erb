@@ -37,6 +37,13 @@
       <% end %>
       <% if @meeting.agenda_sent? %>
         <p class="txt-x-small txt-subtle margin-block-start-half">Sent by <%= @meeting.agenda_sent_via %>.</p>
+      <% elsif !@meeting.cancelled? && @meeting.agenda.blank? %>
+        <div class="section-actions">
+          <%= button_to draft_agenda_account_management_meeting_path(@meeting), class: "btn txt-small" do %>
+            <%= icon_tag "ai" %>
+            <span>Draft the agenda from the records</span>
+          <% end %>
+        </div>
       <% end %>
     </section>
 
@@ -51,6 +58,13 @@
       <% end %>
       <% if @meeting.recap_sent? %>
         <p class="txt-x-small txt-subtle margin-block-start-half">Sent by <%= @meeting.recap_sent_via %>.</p>
+      <% elsif @meeting.started? && !@meeting.cancelled? && @meeting.recap.blank? %>
+        <div class="section-actions">
+          <%= button_to draft_recap_account_management_meeting_path(@meeting), class: "btn txt-small" do %>
+            <%= icon_tag "ai" %>
+            <span>Start the recap from the agenda</span>
+          <% end %>
+        </div>
       <% end %>
     </section>
 

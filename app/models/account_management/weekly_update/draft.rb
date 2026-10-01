@@ -1,7 +1,7 @@
 module AccountManagement
-  # The first draft of a lead's weekly update, from the records: per client they lead, the week's
-  # meetings, work finished, commitments kept and missed, what's due next week and accounts that
-  # need attention. The lead then writes what the records can't: blockers, risks and how the
+  # The first draft of a lead's weekly update, from the records: per client they lead, its health
+  # this week, when it last heard from us, the week's meetings, work finished, commitments kept and
+  # missed, what's due next week, what we're waiting on them for and accounts that need attention. The lead then writes what the records can't: blockers, risks and how the
   # client feels.
   class WeeklyUpdate::Draft
     include ActionView::Helpers::TagHelper, ActionView::Helpers::OutputSafetyHelper
@@ -25,15 +25,20 @@ module AccountManagement
         overdue = client.commitments.overdue.ordered
         next_week = client.commitments.open.where(due_on: (@week.last + 1)..(@week.last + 7)).ordered
         accesses = client.account_accesses.ordered.reject(&:in_order?)
+        health = HealthCheck.where(client: client, week_of: @week.first).first
+        waiting = Waiting.for_client(client)
+        last_contact = Pulse.new([ client.id ]).last_contact(client)
 
         safe_join([
           tag.h3(client.name),
-          lines("Status", [ "On track / at risk / off track: …" ]),
+          lines("Status", [ health ? [ health.label, health.reason ].compact.join(": ") : "On track / at risk / off track: …" ]),
+          lines("Last contact", [ last_contact ? last_contact.to_date.to_fs(:long) : "none yet" ]),
           lines("Meetings", meetings.map { "#{it.title} (#{it.when_label}): #{paper_state(it)}" }),
           lines("Shipped", finished.map(&:title)),
           lines("Commitments resolved", resolved.map { "#{it.description}: #{it.resolution}" }),
           lines("Overdue", overdue.map { "#{it.description} (#{it.owner_name}, due #{it.due_on.to_fs(:long)})" }),
           lines("Next week", next_week.map { "#{it.description} (#{it.owner_name}, #{it.due_on.to_fs(:long)})" }),
+          lines("Waiting on them", waiting.map { "#{it.label} (#{it.detail})" }),
           lines("Accounts needing attention", accesses.map { "#{it.platform_label} #{it.name}: #{it.problems.first}" }),
           lines("Blockers and risks", [ "…" ])
         ].compact)

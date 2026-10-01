@@ -1,0 +1,28 @@
+<% @page_title = "Contacts" %>
+
+<%= render "account_management/links" %>
+
+<% if @touches.any? %>
+  <section class="panel shadow center index-table">
+    <table class="data-table" data-controller="pagination" data-pagination-paginate-on-intersection-value="true" data-pagination-discard-frame-value="true">
+      <thead>
+        <tr><th>When</th><th><%= term(:client) %></th><th>What</th><th>About</th><th>Who</th></tr>
+      </thead>
+      <tbody id="<%= pagination_frame_id_for(:touch_rows, @page.number) %>">
+        <% @touches.each do |touch| %>
+          <%# herb:key touch.id %>
+          <tr data-filter-target="item">
+            <td class="txt-nowrap"><%= l touch.happened_at, format: :short %></td>
+            <td><%= link_to touch.client.name, client_path(touch.client, tab: "plugin-account_management"), class: "txt-ink" %></td>
+            <td><%= touch.label %><% unless touch.source == "logged" %> <span class="txt-subtle">(<%= touch.source %>)</span><% end %></td>
+            <td class="txt-subtle"><%= touch.summary %></td>
+            <td><%= person_tag touch.user, fallback: "Nobody" %></td>
+          </tr>
+        <% end %>
+        <%= table_next_page_row :touch_rows, @page, columns: 5 %>
+      </tbody>
+    </table>
+  </section>
+<% else %>
+  <div class="blank-slate">No contacts logged yet. Log one from the Contact quick action (<kbd>a</kbd>) or a <%= term(:client).downcase %>’s Account management tab: every call, email, text and visit.</div>
+<% end %>

@@ -1,0 +1,74 @@
+<% @page_title = "Account management" %>
+<%= render "settings/header", current: :account_management %>
+
+<section class="settings">
+  <div class="settings__panel panel shadow txt-align-start">
+    <section class="settings__section flex flex-column gap">
+      <header>
+        <h2 class="divider">Who it’s on for <span class="txt-subtle"><%= @members.size %></span></h2>
+      </header>
+      <p class="txt-small txt-subtle margin-none">
+        Account management is for the people who look after <%= term(:client, count: 2).downcase %>: usually your project managers. Each one gets Accounts in their menu, a Today list, and warnings on home. They choose the <%= term(:client, count: 2).downcase %> they work with in My clients. Only they can lead or back up a <%= term(:client).downcase %>.
+      </p>
+      <% if @members.any? %>
+        <ul class="settings__scrollable-list">
+          <% @members.each do |member| %>
+            <%# herb:key member.id %>
+            <li class="flex align-center gap-half txt-small">
+              <%= person_tag member.user %>
+              <div class="txt-align-start min-width flex-item-grow">
+                <strong><%= member.user.display_name %></strong>
+                <div class="txt-x-small txt-subtle">
+                  <%= member.all_clients? ? "Every #{term(:client).downcase}" : pluralize(member.clients.count, term(:client).downcase) %> ·
+                  leads <%= AccountManagement::Lead.where(user: member.user).count %><% if member.away? %> · away until <%= l member.away_until, format: :long %><% end %>
+                </div>
+              </div>
+              <details class="txt-align-start">
+                <summary class="btn txt-x-small"><%= member.away? ? "Away" : "Set away" %></summary>
+                <%= form_with url: account_management_member_path(member), method: :patch, scope: :member, namespace: dom_id(member), class: "flex align-center gap-half txt-small margin-block-start" do |form| %>
+                  <%= date_input form, :away_until, value: member.away_until, class: "input", aria: { label: "Away until" } %>
+                  <button type="submit" class="btn btn--link txt-x-small">Save</button>
+                <% end %>
+              </details>
+              <%= button_to "Switch off", account_management_member_path(member), method: :delete, class: "btn txt-x-small txt-negative" %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="txt-small margin-none">It isn’t on for anyone yet. Switch it on for your project managers below.</p>
+      <% end %>
+    </section>
+
+    <% if @others.any? %>
+      <section class="settings__section flex flex-column gap">
+        <header>
+          <h2 class="divider">Switch it on for</h2>
+        </header>
+        <ul class="settings__scrollable-list">
+          <% @others.each do |user| %>
+            <%# herb:key user.id %>
+            <li class="flex align-center gap-half txt-small">
+              <%= person_tag user %>
+              <div class="txt-align-start min-width flex-item-grow">
+                <strong><%= user.display_name %></strong>
+                <div class="txt-x-small txt-subtle"><%= user.role.humanize %></div>
+              </div>
+              <%= button_to "Switch on", account_management_members_path, params: { user_id: user.id }, class: "btn btn--link txt-x-small" %>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
+
+    <section class="settings__section flex flex-column gap-half">
+      <header>
+        <h2 class="divider">Next</h2>
+      </header>
+      <ul class="record-steps txt-small">
+        <li>Each person picks their <%= term(:client, count: 2).downcase %> in <%= link_to "My clients", account_management_portfolio_path, class: "txt-link" %>.</li>
+        <li>On each <%= term(:client).downcase %>’s Account management tab, choose its lead and a backup, and start its onboarding.</li>
+        <li>The <%= link_to "guide", account_management_guide_path, class: "txt-link" %> walks through a week of using it; the <%= link_to "playbook", account_management_playbook_path, class: "txt-link" %> lists the standards.</li>
+      </ul>
+    </section>
+  </div>
+</section>

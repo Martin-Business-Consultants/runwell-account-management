@@ -24,6 +24,22 @@
     </div>
     <%= account_status_tag "attention" %>
   <% end %>
+<% when AccountManagement::Alert %>
+  <%= link_to (item.kind == :digest ? account_management_client_digest_path(item.client) : client_path(item.client, tab: "plugin-account_management")), class: "txt-ink txt-align-start flex align-center gap-half" do %>
+    <div class="min-width flex-item-grow">
+      <strong><%= item.client.name %></strong>
+      <div class="txt-x-small txt-subtle"><%= item.detail.upcase_first %></div>
+    </div>
+    <%= account_status_tag item.kind == :quiet ? "quiet" : "attention" %>
+  <% end %>
+<% when ::Request %>
+  <%= link_to request_path(item), class: "txt-ink txt-align-start flex align-center gap-half" do %>
+    <div class="min-width flex-item-grow">
+      <strong>Answer: <%= item.subject %></strong>
+      <div class="txt-x-small txt-subtle"><%= item.client&.name %> · <%= AccountManagement::Replies.late?(item) ? "was due" : "due" %> by <%= l AccountManagement::Replies.due_at(item), format: :short %></div>
+    </div>
+    <%= account_status_tag AccountManagement::Replies.late?(item) ? "late" : "attention" %>
+  <% end %>
 <% when ::Client %>
   <%= link_to client_path(item, tab: "plugin-account_management"), class: "txt-ink txt-align-start flex align-center gap-half" do %>
     <div class="min-width flex-item-grow">

@@ -13,7 +13,10 @@
     <h2 class="divider">What a lead owns</h2>
     <p><strong>1. The relationship.</strong></p>
     <ul>
-      <li>The main day-to-day contact for each <%= term(:client).downcase %> they lead.</li>
+      <li>The main day-to-day contact for each <%= term(:client).downcase %> they lead, with a backup who covers while they’re away.</li>
+      <li>Every <%= term(:client).downcase %> hears from us at least every <%= AccountManagement::Playbook::CONTACT_EVERY %> days (or its own cadence), and every contact is logged.</li>
+      <li>Every request from a <%= term(:client).downcase %> answered within <%= pluralize(AccountManagement::Playbook::REPLY_WITHIN, "business day") %>.</li>
+      <li>A meeting rhythm for every <%= term(:client).downcase %>, so the next meeting is always planned.</li>
       <li>An agenda for every <%= term(:client).downcase %> meeting, sent at least <%= ahead %> hours ahead, with research or answers for what was left open last time.</li>
       <li>A recap within <%= within %> hours: decisions, then action items with owners and dates. Action items become commitments.</li>
       <li>Every commitment they own closed by its date, or raised before it slips.</li>
@@ -39,7 +42,9 @@
     <ul>
       <li>Nobody on the team is blocked waiting on <%= term(:client).downcase %> information.</li>
       <li>Risks to scope, dates or the relationship are raised early.</li>
+      <li>Each <%= term(:client).downcase %>’s health (on track, at risk, off track) set by the end of Thursday.</li>
       <li>A written weekly update by the end of Friday: per <%= term(:client).downcase %>, status, what shipped, what’s next, blockers, risks and open items.</li>
+      <li>What we’re waiting on a <%= term(:client).downcase %> for is chased: nudged once it’s <%= (AccountManagement::Playbook::WAITING_NUDGE / 1.day).round %> days old.</li>
     </ul>
 
     <h2 class="divider">First 90 days</h2>
@@ -61,6 +66,8 @@
         <dt>Recaps within <%= within %>h</dt><dd><%= targets[:recaps] %>%</dd>
         <dt>Commitments by their date</dt><dd><%= targets[:commitments] %>% or more</dd>
         <dt>Weekly update by Friday</dt><dd><%= targets[:updates] %>%</dd>
+        <dt>Requests answered in <%= pluralize(AccountManagement::Playbook::REPLY_WITHIN, "business day") %></dt><dd><%= targets[:replies] %>% or more</dd>
+        <dt><%= term(:client, count: 2) %> in touch every week</dt><dd><%= targets[:contact] %>%</dd>
       </dl>
       <p class="txt-x-small txt-subtle margin-none">Counted from what was actually sent and resolved, over the last 30 days. <%= link_to "Your scorecard", account_management_scorecard_path(Current.user), class: "txt-link" %>.</p>
     </section>
@@ -71,6 +78,9 @@
       <ul class="record-steps txt-small">
         <li>A day before an agenda is due, and until a recap is out.</li>
         <li>On Friday, until the weekly update is sent.</li>
+        <li>When a <%= term(:client).downcase %> you look after hasn’t heard from us within its cadence.</li>
+        <li>When a request is close to, or past, its reply time.</li>
+        <li>From Thursday, until each <%= term(:client).downcase %>’s health is set; on Friday, until a <%= term(:client).downcase %>’s digest is sent.</li>
         <li>When an account is owned by someone else, we can’t get in, or a token expires within <%= (AccountManagement::Playbook::TOKEN_WARNING / 1.day).round %> days.</li>
       </ul>
     </section>

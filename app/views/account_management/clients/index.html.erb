@@ -1,0 +1,50 @@
+<% @page_title = term(:client, count: 2) %>
+
+<%= render "account_management/links" %>
+
+<% if @clients.empty? %>
+  <div class="blank-slate">You don’t work with any <%= term(:client, count: 2).downcase %> yet. Choose them in <%= link_to "My clients", account_management_portfolio_path, class: "txt-link" %>.</div>
+<% else %>
+  <section class="panel shadow center index-table">
+    <table class="data-table">
+      <thead>
+        <tr><th><%= term(:client) %></th><th>Health</th><th>Last contact</th><th>Lead</th><th>Next meeting</th><th class="data-table__number">Waiting on them</th></tr>
+      </thead>
+      <tbody>
+        <% @clients.each do |client| %>
+          <%# herb:key client.id %>
+          <% lead = client.account_lead %>
+          <% check = @health[client.id] %>
+          <% meeting = @next_meetings[client.id] %>
+          <tr data-filter-target="item">
+            <td><%= link_to client.name, client_path(client, tab: "plugin-account_management"), class: "txt-ink font-weight-bold" %></td>
+            <td>
+              <%= account_health_tag check %>
+              <% if check && !check.this_week? %>
+                <span class="txt-x-small txt-subtle">last week</span>
+              <% end %>
+            </td>
+            <td class="<%= "txt-negative" if @pulse.quiet?(client, lead) %>"><%= account_last_contact @pulse.last_contact(client) %></td>
+            <td>
+              <span class="flex align-center gap-half">
+                <%= person_tag lead&.user, fallback: "Nobody" %>
+                <% if lead&.backup_user %>
+                  <span class="txt-x-small txt-subtle">backup</span>
+                  <%= person_tag lead.backup_user %>
+                <% end %>
+              </span>
+            </td>
+            <td>
+              <% if meeting %>
+                <%= link_to meeting.when_label, account_management_meeting_path(meeting), class: "txt-link" %>
+              <% else %>
+                <span class="txt-subtle">none planned</span>
+              <% end %>
+            </td>
+            <td class="data-table__number"><%= @waiting[client.id]&.size || 0 %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+<% end %>

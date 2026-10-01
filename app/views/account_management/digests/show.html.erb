@@ -1,0 +1,46 @@
+<% @page_title = "#{@client.name}: weekly digest" %>
+<% content_for :header do %>
+  <%= parent_page @client.name, client_path(@client, tab: "plugin-account_management") %>
+<% end %>
+
+<section class="settings settings--split">
+  <div class="settings__panel panel shadow txt-align-start">
+    <h1 class="page-title"><%= @page_title %></h1>
+    <p class="txt-small txt-subtle margin-none"><%= @digest.label %>. Drafted from what the <%= term(:client).downcase %> may see: finished work shared with them, meetings, what we’re waiting on them for and what’s next. Read it through and add what the records can’t say.</p>
+
+    <% if @digest.sent? %>
+      <div class="txt-small accounts-paper"><%= rich_text @digest.body %></div>
+    <% else %>
+      <%= form_with model: @digest, url: account_management_client_digest_path(@client), method: :patch, scope: :digest, class: "flex flex-column gap txt-small" do |form| %>
+        <%= rich_text_field form, :body %>
+        <button type="submit" class="btn center">Save the draft</button>
+      <% end %>
+
+      <%= form_with url: deliver_account_management_client_digest_path(@client), class: "flex flex-column gap-half txt-small margin-block-start" do %>
+        <fieldset class="flex flex-column gap-half borderless pad-none margin-none">
+          <legend class="font-weight-bold margin-block-end-half">Send it to</legend>
+          <% @client.contacts.active.where.not(email: [ nil, "" ]).ordered.each do |contact| %>
+            <%# herb:key contact.id %>
+            <label class="flex align-center gap-half">
+              <%= check_box_tag "contact_ids[]", contact.id, @recipients.include?(contact), id: "digest_contact_#{contact.id}" %>
+              <span><%= contact.name %> <span class="txt-subtle"><%= contact.email %></span></span>
+            </label>
+          <% end %>
+        </fieldset>
+        <button type="submit" class="btn btn--link center">Send this week’s digest</button>
+      <% end %>
+    <% end %>
+  </div>
+
+  <aside class="settings__panel settings__panel--side panel shadow txt-align-start">
+    <dl class="record-facts">
+      <dt>Week</dt>
+      <dd><%= @digest.week_of.to_fs(:long) %></dd>
+      <dt>Due</dt>
+      <dd><%= l @digest.due_at, format: :short %></dd>
+      <dt>Status</dt>
+      <dd><%= @digest.sent? ? "Sent #{l @digest.sent_at, format: :short} to #{@digest.sent_to}" : "Not sent" %></dd>
+    </dl>
+    <p class="txt-x-small txt-subtle">Save the draft before sending if you changed it: sending uses the saved draft. Sending is final, and counts as contact.</p>
+  </aside>
+</section>

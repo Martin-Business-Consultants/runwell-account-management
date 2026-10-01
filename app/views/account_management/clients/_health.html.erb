@@ -1,0 +1,39 @@
+<%# locals: (client:) %>
+<% checks = client.account_health_checks.recent.limit(6).includes(:user).to_a %>
+<% this_week = checks.find(&:this_week?) %>
+<section class="settings__section">
+  <header>
+    <h2 class="divider">How it’s doing</h2>
+  </header>
+  <div class="flex flex-wrap align-center gap-half txt-small">
+    <span class="font-weight-bold">This week</span>
+    <%= account_health_tag this_week %>
+    <% if this_week&.reason %>
+      <span class="txt-subtle"><%= this_week.reason %></span>
+    <% end %>
+  </div>
+  <details class="txt-align-start margin-block-start-half">
+    <summary class="btn txt-small"><%= this_week ? "Change this week’s health" : "Set this week’s health" %></summary>
+    <%= form_with url: account_management_client_health_checks_path(client), namespace: "health_#{client.id}", class: "flex flex-column gap-half txt-small margin-block-start-half" do %>
+      <div class="flex flex-wrap gap">
+        <% AccountManagement::HealthCheck::STATUSES.each do |value, label| %>
+          <%# herb:key value %>
+          <label class="flex align-center gap-half">
+            <%= radio_button_tag :status, value, (this_week&.status || "on_track") == value, id: "health_#{client.id}_#{value}" %>
+            <span><%= label %></span>
+          </label>
+        <% end %>
+      </div>
+      <%= text_field_tag :reason, this_week&.reason, class: "input full-width", autocomplete: "off", placeholder: "Why, in a line (needed unless on track)", id: "health_#{client.id}_reason", aria: { label: "Why" } %>
+      <button type="submit" class="btn btn--link txt-small">Save</button>
+    <% end %>
+  </details>
+  <% if checks.size > 1 %>
+    <ul class="accounts-trend txt-x-small margin-block-start-half" aria-label="Recent weeks">
+      <% checks.reverse.each do |check| %>
+        <%# herb:key check.id %>
+        <li title="<%= check.week_of.to_fs(:long) %>: <%= check.label %><%= ", #{check.reason}" if check.reason %>"><%= account_health_tag check %></li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

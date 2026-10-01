@@ -1,7 +1,8 @@
 module AccountManagement
   # How a lead did against the playbook over the last N days, from what they actually did:
   # agendas sent a day ahead, recaps sent within a day, their commitments kept by the date
-  # promised, and weekly updates sent by Friday. Each measure keeps the records that missed, so
+  # promised, weekly updates sent by Friday, their clients' requests answered within a business
+  # day, and their clients kept in touch week by week. Each measure keeps the records that missed, so
   # a conversation about the numbers starts from facts. Only what's settled counts: a meeting
   # whose agenda can still go out on time, or a commitment not yet due, is left out.
   class Scorecard
@@ -19,7 +20,12 @@ module AccountManagement
 
     def since = days.days.ago
 
-    def measures = @measures ||= [ agendas, recaps, commitments, updates ]
+    # A week a client went longer than its cadence without contact.
+    Gap = Data.define(:client, :week_of, :last_contact) do
+      def id = "#{client.id}-#{week_of}"
+    end
+
+    def measures = @measures ||= [ agendas, recaps, commitments, updates, replies, contact ]
     def met? = measures.all?(&:met?)
 
     def clients = @clients ||= Lead.clients_for(user).ordered.to_a
@@ -56,6 +62,33 @@ module AccountManagement
           .select { it.due_at.between?(since, Time.current) && Lead.where(user: user).where(created_at: ..it.due_at).exists? }
         Measure.new(key: :updates, label: "Weekly updates sent by Friday", target: Playbook::TARGETS[:updates],
           kept: weeks.count(&:on_time?), misses: weeks.reject(&:on_time?))
+      end
+
+      # Requests from their clients whose reply time ended in the window: answered by then is kept.
+      def replies
+        due = ::Request.where(client_id: clients.map(&:id), received_at: (since - 4.days)..Time.current).includes(:client).to_a
+          .select { Replies.due_at(it).between?(since, Time.current) }
+        kept = due.select { (answered = Replies.answered_at(it)) && answered <= Replies.due_at(it) }
+        Measure.new(key: :replies, label: "Requests answered within #{Playbook::REPLY_WITHIN} business day", target: Playbook::TARGETS[:replies],
+          kept: kept.size, misses: due - kept)
+      end
+
+      # Each finished week in the window, for each client they led then: kept when the client
+      # had heard from us within its cadence as of the week's end.
+      def contact
+        leads = Lead.where(user: user).includes(:client).to_a
+        longest = leads.map(&:contact_every).max || Playbook::CONTACT_EVERY.days
+        times = Pulse.new(leads.map(&:client_id)).contact_times(since - longest)
+        weeks = (since.to_date..Date.current).map { it.beginning_of_week(:monday) }.uniq.select { it.end_of_week(:monday) < Date.current }
+        checks = leads.flat_map do |lead|
+          weeks.select { lead.created_at.to_date <= it.end_of_week(:monday) }.map do |week|
+            week_end = week.end_of_week(:monday).end_of_day
+            last = times[lead.client_id].select { it <= week_end }.max
+            [ last && last >= week_end - lead.contact_every, Gap.new(lead.client, week, last) ]
+          end
+        end
+        Measure.new(key: :contact, label: "Clients in touch every week", target: Playbook::TARGETS[:contact],
+          kept: checks.count(&:first), misses: checks.reject(&:first).map(&:last))
       end
 
       def hours(duration) = "#{(duration / 1.hour).round}h"

@@ -1,0 +1,42 @@
+<%# locals: (client:) %>
+<% contacts = client.contacts.active.ordered.to_a %>
+<% profiles = AccountManagement::ContactProfile.where(contact: contacts).index_by(&:contact_id) %>
+<% if contacts.any? %>
+  <section class="settings__section">
+    <header>
+      <h2 class="divider">Who’s who</h2>
+    </header>
+    <ul class="settings__scrollable-list">
+      <% contacts.each do |contact| %>
+        <%# herb:key contact.id %>
+        <% profile = profiles[contact.id] %>
+        <li class="flex flex-column gap-half txt-small">
+          <div class="flex align-center gap-half">
+            <div class="txt-align-start min-width flex-item-grow">
+              <strong><%= contact.name %></strong>
+              <div class="txt-x-small txt-subtle"><%= [ profile&.role_labels&.to_sentence.presence, (profile&.channel_label && "prefers #{profile.channel_label.downcase}"), contact.email, contact.phone ].compact_blank.join(" · ").presence || "No role set" %></div>
+            </div>
+            <details class="txt-align-start">
+              <summary class="btn txt-x-small">Edit</summary>
+              <%= form_with url: account_management_contact_profile_path(contact), method: :patch, scope: :profile, namespace: dom_id(contact), class: "flex flex-column gap-half txt-small margin-block-start-half" do |form| %>
+                <%= hidden_field_tag "profile[roles][]", "", id: nil %>
+                <div class="flex flex-wrap gap">
+                  <% AccountManagement::ContactProfile::ROLES.each do |value, label| %>
+                    <%# herb:key value %>
+                    <label class="flex align-center gap-half">
+                      <%= check_box_tag "profile[roles][]", value, Array(profile&.roles).include?(value), id: "#{dom_id(contact)}_#{value}" %>
+                      <span><%= label %></span>
+                    </label>
+                  <% end %>
+                </div>
+                <%= form.select :preferred_channel, AccountManagement::ContactProfile::CHANNELS.invert, { include_blank: "Prefers…", selected: profile&.preferred_channel }, class: "input input--select", aria: { label: "Prefers" } %>
+                <button type="submit" class="btn btn--link txt-small">Save</button>
+              <% end %>
+            </details>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+    <p class="txt-x-small txt-subtle margin-block-start-half">Agendas, recaps, nudges and digests go to decision-makers and day-to-day contacts first.</p>
+  </section>
+<% end %>

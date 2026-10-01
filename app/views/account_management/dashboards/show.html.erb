@@ -1,4 +1,4 @@
-<% @page_title = "Accounts" %>
+<% @page_title = "Team" %>
 <% mine = @scorecards.find { it.user == Current.user } %>
 
 <%= render "account_management/links" %>
@@ -11,7 +11,7 @@
   <section class="panel shadow center index-table">
     <table class="data-table">
       <thead>
-        <tr><th>Lead</th><th><%= term(:client, count: 2) %></th><th class="data-table__number">Agendas</th><th class="data-table__number">Recaps</th><th class="data-table__number">Commitments</th><th class="data-table__number">Updates</th><th class="data-table__number">Overdue</th><th class="data-table__number">Accounts</th><th></th></tr>
+        <tr><th>Lead</th><th><%= term(:client, count: 2) %></th><th class="data-table__number">Agendas</th><th class="data-table__number">Recaps</th><th class="data-table__number">Commitments</th><th class="data-table__number">Updates</th><th class="data-table__number">Replies</th><th class="data-table__number">In touch</th><th class="data-table__number">Overdue</th><th class="data-table__number">Accounts</th><th></th></tr>
       </thead>
       <tbody>
         <% @scorecards.each do |scorecard| %>

@@ -1,0 +1,45 @@
+<%# locals: (client:, pulse:, lead:) %>
+<% touches = client.account_touches.recent.includes(:contact, :user).limit(6).to_a %>
+<% last = pulse.last_contact(client) %>
+<section class="settings__section">
+  <header>
+    <h2 class="divider">Contact</h2>
+  </header>
+  <div class="flex flex-wrap align-center gap-half txt-small">
+    <span class="font-weight-bold">Last contact</span>
+    <span><%= account_last_contact last %></span>
+    <%= account_status_tag pulse.quiet?(client, lead) ? "quiet" : "in_touch" %>
+    <span class="txt-x-small txt-subtle">every <%= pluralize((lead&.contact_every || AccountManagement::Playbook::CONTACT_EVERY.days).in_days.round, "day") %></span>
+  </div>
+  <% if touches.any? %>
+    <ul class="settings__scrollable-list margin-block-start-half">
+      <% touches.each do |touch| %>
+        <%# herb:key touch.id %>
+        <li class="flex align-center gap-half txt-small">
+          <div class="txt-align-start min-width flex-item-grow">
+            <strong><%= touch.label %></strong>
+            <div class="txt-x-small txt-subtle"><%= l touch.happened_at, format: :short %><% if touch.summary.present? %> · <%= touch.summary %><% end %><% unless touch.source == "logged" %> · <%= touch.source %><% end %></div>
+          </div>
+          <%= person_tag touch.user %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+  <div class="section-actions">
+    <details class="txt-align-start">
+      <summary class="btn txt-small"><%= icon_tag "add" %> <span>Log a contact</span></summary>
+      <%= form_with url: account_management_touches_path, scope: :touch, namespace: "touch_#{client.id}", class: "flex flex-column gap-half txt-small margin-block-start-half", data: { turbo_action: "advance" } do |form| %>
+        <%= hidden_field_tag :record, QuickAction.value_for(client), id: nil %>
+        <div class="flex flex-wrap gap-half">
+          <%= form.select :channel, AccountManagement::Touch::CHANNELS.invert, {}, class: "input input--select", aria: { label: "How" } %>
+          <%= form.select :direction, AccountManagement::Touch::DIRECTIONS.invert, {}, class: "input input--select", aria: { label: "Who reached out" } %>
+          <%= form.select :contact_id, client.contacts.active.ordered.map { [ it.name, it.id ] }, { include_blank: "Who at the #{term(:client).downcase}" }, class: "input input--select", aria: { label: "Who" } %>
+          <%= date_input form, :happened_on, value: Date.current, class: "input", aria: { label: "When" } %>
+        </div>
+        <%= form.text_field :summary, class: "input full-width", autocomplete: "off", placeholder: "What it was about", aria: { label: "What it was about" } %>
+        <button type="submit" class="btn btn--link txt-small">Log it</button>
+      <% end %>
+    </details>
+    <%= link_to "Every contact", account_management_touches_path(client_id: client.id), class: "btn txt-small" %>
+  </div>
+</section>

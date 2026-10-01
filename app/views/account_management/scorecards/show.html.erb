@@ -40,6 +40,24 @@
                   <hr class="separator--horizontal flex-item-grow txt-subtle" aria-hidden="true">
                   <%= account_status_tag "late" %>
                 </li>
+              <% when ::Request %>
+                <li class="flex align-center gap-half">
+                  <%= link_to request_path(miss), class: "txt-ink txt-align-start min-width" do %>
+                    <strong><%= miss.subject %></strong>
+                    <div class="txt-x-small txt-subtle"><%= miss.client&.name %> · came in <%= l miss.received_at, format: :short %> · <%= (answered = AccountManagement::Replies.answered_at(miss)) ? "answered #{l answered, format: :short}" : "not answered" %></div>
+                  <% end %>
+                  <hr class="separator--horizontal flex-item-grow txt-subtle" aria-hidden="true">
+                  <%= account_status_tag "late" %>
+                </li>
+              <% when AccountManagement::Scorecard::Gap %>
+                <li class="flex align-center gap-half">
+                  <%= link_to client_path(miss.client, tab: "plugin-account_management"), class: "txt-ink txt-align-start min-width" do %>
+                    <strong><%= miss.client.name %></strong>
+                    <div class="txt-x-small txt-subtle">Week of <%= l miss.week_of, format: :short %> · <%= miss.last_contact ? "last contact #{l miss.last_contact.to_date, format: :short}" : "no contact yet" %></div>
+                  <% end %>
+                  <hr class="separator--horizontal flex-item-grow txt-subtle" aria-hidden="true">
+                  <%= account_status_tag "late" %>
+                </li>
               <% else %>
                 <li class="flex align-center gap-half">
                   <%= link_to (miss.engagement || miss.client), class: "txt-ink txt-align-start min-width" do %>
@@ -103,6 +121,8 @@
       <ul class="record-steps txt-small">
         <li>Only what’s settled counts: an agenda that can still go out on time, or a commitment not yet due, waits.</li>
         <li>A commitment is kept when it’s marked done on or before its date. Dropped ones don’t count.</li>
+        <li>A request is answered when it’s triaged, or when we log a contact with the <%= term(:client).downcase %> after it came in.</li>
+        <li>A <%= term(:client).downcase %> is in touch for a week when, at the week’s end, it had heard from us within its cadence: a logged contact, a meeting, a call, meeting or email note, a request, an agreement or a digest.</li>
         <li>The targets are in the <%= link_to "playbook", account_management_playbook_path, class: "txt-link" %>.</li>
       </ul>
     </section>

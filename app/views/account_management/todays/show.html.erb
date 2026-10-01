@@ -1,0 +1,58 @@
+<% @page_title = "Today" %>
+<% groups = @cockpit.by_urgency %>
+
+<%= render "account_management/links" %>
+
+<% if @cockpit.clients.empty? %>
+  <div class="blank-slate">
+    You don’t have any <%= term(:client, count: 2).downcase %> yet. Choose who you work with in <%= link_to "My clients", account_management_portfolio_path, class: "txt-link" %>, or ask whoever assigns leads to make you one.
+  </div>
+<% elsif groups.empty? %>
+  <div class="blank-slate">
+    Nothing needs you across your <%= pluralize(@cockpit.clients.size, term(:client).downcase) %>. Every agenda and recap is out, every request answered, and everyone has heard from us within their cadence.
+  </div>
+<% end %>
+
+<div class="flex flex-column gap">
+  <% AccountManagement::Cockpit::URGENCIES.each do |urgency, title| %>
+    <%# herb:key urgency %>
+    <% items = groups[urgency] %>
+    <% if items.present? %>
+      <section class="panel panel--wide shadow center txt-align-start settings__section">
+        <header>
+          <h2 class="divider"><%= title %> <span class="txt-subtle"><%= items.size %></span></h2>
+        </header>
+        <ul class="settings__scrollable-list">
+          <% items.each do |item| %>
+            <%# herb:key item.key %>
+            <li class="flex align-center gap-half" data-filter-target="item">
+              <%= link_to item.path, class: "txt-ink txt-align-start min-width flex-item-grow" do %>
+                <strong><%= item.title %></strong>
+                <div class="txt-x-small txt-subtle"><%= [ item.client&.name, item.detail ].compact_blank.join(" · ") %><% unless item.mine %> · not yours to lead<% end %></div>
+              <% end %>
+              <%= account_urgency_tag urgency %>
+              <details class="accounts-snooze">
+                <summary class="btn btn--plain txt-x-small" title="Snooze">
+                  <%= icon_tag "bell-off" %>
+                  <span class="for-screen-reader">Snooze</span>
+                </summary>
+                <div class="accounts-snooze__menu flex flex-column gap-half">
+                  <% AccountManagement::Snooze::CHOICES.each do |days, label| %>
+                    <%# herb:key days %>
+                    <%= button_to label, account_management_snooze_path, params: { key: item.key, days: days }, class: "btn txt-x-small full-width" %>
+                  <% end %>
+                </div>
+              </details>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
+  <% end %>
+</div>
+
+<% if (snoozed = @cockpit.snoozed_count).positive? %>
+  <div class="flex justify-center margin-block-start">
+    <%= button_to "Bring back #{pluralize(snoozed, "snoozed item")}", account_management_snooze_path, method: :delete, class: "btn txt-small" %>
+  </div>
+<% end %>

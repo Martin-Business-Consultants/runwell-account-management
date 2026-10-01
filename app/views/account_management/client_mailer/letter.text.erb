@@ -1,0 +1,3 @@
+Hi <%= @contact.name %>,
+
+<%= strip_tags(@body.to_s.gsub(/<\/(p|li|h\d)>/, "\n")).gsub(/\n{3,}/, "\n\n").strip %>

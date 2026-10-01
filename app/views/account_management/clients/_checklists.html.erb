@@ -1,0 +1,49 @@
+<%# locals: (client:) %>
+<% checklists = client.account_checklists.order(:started_at).to_a %>
+<section class="settings__section" id="checklists">
+  <header>
+    <h2 class="divider">Checklists</h2>
+  </header>
+  <% checklists.each do |checklist| %>
+    <%# herb:key checklist.id %>
+    <div class="flex flex-column gap-half margin-block-end">
+      <div class="flex align-center gap-half txt-small">
+        <strong class="flex-item-grow"><%= checklist.label %></strong>
+        <span class="txt-subtle"><%= checklist.done_count %> of <%= checklist.steps.size %></span>
+        <%= account_status_tag checklist.complete? ? "done" : "planned" %>
+      </div>
+      <ol class="accounts-steps txt-small">
+        <% checklist.steps.each do |step| %>
+          <%# herb:key step.key %>
+          <li class="flex align-start gap-half">
+            <% if step.automatic %>
+              <span class="accounts-steps__check <%= "accounts-steps__check--done" if step.done %>" title="Ticks itself from the records" aria-hidden="true"><%= icon_tag "check" if step.done %></span>
+            <% else %>
+              <%= button_to toggle_account_management_client_checklist_path(client, checklist), params: { step: step.key }, class: "accounts-steps__check #{"accounts-steps__check--done" if step.done} btn btn--plain", title: step.done ? "Untick" : "Tick", form: { class: "accounts-steps__form" } do %>
+                <% if step.done %>
+                  <%= icon_tag "check" %>
+                <% end %>
+                <span class="for-screen-reader"><%= step.done ? "Untick" : "Tick" %> <%= step.label %></span>
+              <% end %>
+            <% end %>
+            <div class="min-width flex-item-grow">
+              <span class="<%= "txt-subtle" if step.done %>"><%= step.label %></span>
+              <div class="txt-x-small txt-subtle"><%= [ step.hint, (step.automatic ? "ticks itself" : (step.done_at && "#{step.done_by}, #{l step.done_at.to_date, format: :short}")) ].compact_blank.join(" · ") %></div>
+            </div>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+  <% end %>
+  <div class="section-actions">
+    <% AccountManagement::Checklist::KINDS.each do |kind, label| %>
+      <%# herb:key kind %>
+      <% unless checklists.any? { it.kind == kind } %>
+        <%= button_to account_management_client_checklists_path(client), params: { kind: kind }, class: "btn txt-small" do %>
+          <%= icon_tag "add" %>
+          <span>Start <%= label.downcase %></span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</section>

@@ -1,0 +1,64 @@
+<% @page_title = "My clients" %>
+
+<%= render "account_management/links" %>
+
+<section class="settings settings--split">
+  <div class="settings__panel panel shadow txt-align-start">
+    <h1 class="page-title"><%= @page_title %></h1>
+    <p class="txt-small txt-subtle margin-none">The <%= term(:client, count: 2).downcase %> you work with: they make up your Today list, your <%= term(:client, count: 2).downcase %> page and your contact log. The ones you lead or back up are always yours.</p>
+
+    <%= form_with url: account_management_portfolio_path, method: :patch, scope: :member, class: "flex flex-column gap txt-small" do |form| %>
+      <fieldset class="flex flex-column gap-half borderless pad-none margin-none">
+        <legend class="font-weight-bold margin-block-end-half">Work with</legend>
+        <% AccountManagement::Member::SCOPES.each do |value, label| %>
+          <%# herb:key value %>
+          <label class="flex align-center gap-half">
+            <%= form.radio_button :client_scope, value, checked: current_member.client_scope == value %>
+            <span><%= label %></span>
+          </label>
+        <% end %>
+      </fieldset>
+
+      <fieldset class="flex flex-column gap-half borderless pad-none margin-none">
+        <legend class="font-weight-bold margin-block-end-half">The <%= term(:client, count: 2).downcase %> I choose <span class="txt-subtle font-weight-normal">when working with a group</span></legend>
+        <%= hidden_field_tag "member[client_ids][]", "" %>
+        <div class="accounts-checks">
+          <% chosen = current_member.member_clients.pluck(:client_id).to_set %>
+          <% @clients.each do |client| %>
+            <%# herb:key client.id %>
+            <label class="flex align-center gap-half">
+              <% if @fixed.include?(client.id) %>
+                <%= check_box_tag nil, 1, true, disabled: true, id: nil, aria: { label: client.name } %>
+                <span><%= client.name %> <span class="txt-subtle">(you lead or back it up)</span></span>
+              <% else %>
+                <%= check_box_tag "member[client_ids][]", client.id, chosen.include?(client.id), id: "member_client_#{client.id}" %>
+                <span><%= client.name %></span>
+              <% end %>
+            </label>
+          <% end %>
+        </div>
+      </fieldset>
+
+      <label class="flex flex-column gap-half">
+        <span class="font-weight-bold">Away until <span class="txt-subtle font-weight-normal">the last day you’re out; leave blank when you’re in</span></span>
+        <%= date_input form, :away_until, value: current_member.away_until, class: "input" %>
+        <span class="txt-x-small txt-subtle">While you’re away, each <%= term(:client).downcase %> you lead goes to its backup: their Today, their home warnings.</span>
+      </label>
+
+      <button type="submit" class="btn btn--link center">Save</button>
+    <% end %>
+  </div>
+
+  <aside class="settings__panel settings__panel--side panel shadow txt-align-start">
+    <dl class="record-facts">
+      <dt>Working with</dt>
+      <dd><%= current_member.all_clients? ? "Every #{term(:client).downcase}" : pluralize(current_member.clients.count, term(:client).downcase) %></dd>
+      <dt>Leading</dt>
+      <dd><%= AccountManagement::Lead.where(user: Current.user).count %></dd>
+      <dt>Backing up</dt>
+      <dd><%= AccountManagement::Lead.where(backup_user: Current.user).count %></dd>
+      <dt>Away</dt>
+      <dd><%= current_member.away? ? "until #{l current_member.away_until, format: :long}" : "No" %></dd>
+    </dl>
+  </aside>
+</section>
