@@ -1,6 +1,6 @@
 <% @page_title = "Calls" %>
 
-<%= render "account_management/links" %>
+<%= render "account_management/nav", current: :calls %>
 
 <% if @calls.any? %>
   <section class="panel shadow center index-table">

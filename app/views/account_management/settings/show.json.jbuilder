@@ -6,3 +6,4 @@ json.members @members do |member|
   json.away_until member.away_until
 end
 json.can_switch_on(@others.map { agent_user(it) })
+json.expertise(@expertise.map { |user_id, tags| { user_id: user_id, tags: tags } })

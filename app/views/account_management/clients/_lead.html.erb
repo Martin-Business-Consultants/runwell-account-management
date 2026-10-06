@@ -32,20 +32,9 @@
         <%= form.number_field :contact_every_days, value: lead.contact_every_days, min: 1, max: 90, placeholder: AccountManagement::Playbook::CONTACT_EVERY, class: "input accounts-days", aria: { label: "Days between contacts" } %>
         <span>days</span>
       <% end %>
-      <hr class="separator--horizontal flex-item-grow txt-subtle" aria-hidden="true">
-      <%= form_with url: account_management_client_lead_path(client), method: :patch, namespace: "digest_#{client.id}", class: "flex align-center gap-half", data: { controller: "form", action: "change->form#submit" } do %>
-        <%= hidden_field_tag :digest_enabled, "0", id: nil %>
-        <label class="flex align-center gap-half">
-          <%= check_box_tag :digest_enabled, "1", lead.digest_enabled?, id: "digest_enabled_#{client.id}" %>
-          <span>Weekly digest to the <%= term(:client).downcase %></span>
-        </label>
-      <% end %>
     </div>
     <p class="txt-x-small txt-subtle margin-block-start-half">
-      <%= lead.user.display_name %> answers for its meetings, commitments and accounts, and covers it in their weekly update. <%= link_to "Scorecard", account_management_scorecard_path(lead.user), class: "txt-link" %>
-      <% if lead.digest_enabled? %>
-        · <%= link_to "This week’s digest", account_management_client_digest_path(client), class: "txt-link" %>
-      <% end %>
+      <%= lead.user.display_name %> answers for its meetings, its commitments and its health each week.
     </p>
   <% elsif !can?(:manage_accounts) %>
     <p class="txt-x-small txt-subtle margin-block-start-half">Someone who may manage accounts chooses its lead.</p>

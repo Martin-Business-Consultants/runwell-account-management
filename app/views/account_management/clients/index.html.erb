@@ -1,6 +1,6 @@
 <% @page_title = term(:client, count: 2) %>
 
-<%= render "account_management/links" %>
+<%= render "account_management/nav", current: :clients %>
 
 <% if @clients.empty? %>
   <div class="blank-slate">You don’t work with any <%= term(:client, count: 2).downcase %> yet. Choose them in <%= link_to "My clients", account_management_portfolio_path, class: "txt-link" %>.</div>
@@ -8,7 +8,7 @@
   <section class="panel shadow center index-table">
     <table class="data-table">
       <thead>
-        <tr><th><%= term(:client) %></th><th>Health</th><th>Last contact</th><th>Lead</th><th>Next meeting</th><th class="data-table__number">Waiting on them</th></tr>
+        <tr><th><%= term(:client) %></th><th>Health</th><th>Last contact</th><th>Lead</th><th>Next meeting</th></tr>
       </thead>
       <tbody>
         <% @clients.each do |client| %>
@@ -41,7 +41,6 @@
                 <span class="txt-subtle">none planned</span>
               <% end %>
             </td>
-            <td class="data-table__number"><%= @waiting[client.id]&.size || 0 %></td>
           </tr>
         <% end %>
       </tbody>

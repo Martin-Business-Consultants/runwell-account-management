@@ -1,7 +1,7 @@
 <% @page_title = "Today" %>
 <% groups = @cockpit.by_urgency %>
 
-<%= render "account_management/links" %>
+<%= render "account_management/nav", current: :today %>
 
 <% if @cockpit.clients.empty? %>
   <div class="blank-slate">
@@ -18,7 +18,7 @@
     <%# herb:key urgency %>
     <% items = groups[urgency] %>
     <% if items.present? %>
-      <section class="panel panel--wide shadow center txt-align-start settings__section">
+      <section class="panel accounts-panel shadow txt-align-start settings__section">
         <header>
           <h2 class="divider"><%= title %> <span class="txt-subtle"><%= items.size %></span></h2>
         </header>

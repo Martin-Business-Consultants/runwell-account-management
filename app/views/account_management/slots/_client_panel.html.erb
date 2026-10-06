@@ -1,18 +1,14 @@
 <%# locals: (client:) %>
 <%# Account management on a client: who answers for it and how often it should hear from us,
-    how it's doing, when it last heard from us, what we're waiting on it for, its meetings and
-    rhythm, who's who there, its checklists and its outside accounts. %>
+    how it's doing, when it last heard from us (and its debriefed calls), and its meetings and
+    rhythm. %>
 <% if AccountManagement::Member.active?(Current.user) %>
   <% lead = client.account_lead %>
   <% pulse = AccountManagement::Pulse.new([ client.id ]) %>
   <%= render "account_management/clients/lead", client: client, lead: lead %>
   <%= render "account_management/clients/health", client: client %>
   <%= render "account_management/clients/contact", client: client, pulse: pulse, lead: lead %>
-  <%= render "account_management/clients/waiting", client: client %>
   <%= render "account_management/clients/meetings", client: client %>
-  <%= render "account_management/clients/people", client: client %>
-  <%= render "account_management/clients/checklists", client: client %>
-  <%= render "account_management/clients/accesses", client: client %>
 <% else %>
   <section class="settings__section">
     <p class="txt-small txt-subtle margin-none">

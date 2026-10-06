@@ -1,19 +1,21 @@
 # Account management for Runwell
 
-Keeps every client in play for the project managers it's switched on for: a Today list across
-their clients, every contact logged and quiet clients flagged, requests answered within a business
-day, meetings on a rhythm with agendas and recaps drafted from the records, nudges for what clients
-owe us, weekly health, who's who at each client, onboarding and offboarding checklists, backup
-leads, an optional weekly digest for clients, the access register, weekly updates and a scorecard.
+Keeps every client in play for the people who look after them. Five things, each a page in
+the Accounts sidebar:
 
-**After every call**, paste your notes into your AI app and say "debrief this call": it plans todos
-on the right engagements with owners by expertise (Accounts > People), shows you the plan, then
-records the call and everything that came out of it (`debrief_call`, `record_call`).
+1. **Today**: what needs you across your clients, most urgent first, with snoozes.
+2. **Clients**: each one's lead and backup, its health this week and when it last heard from us.
+3. **Contacts**: every call, email, text and visit logged, quiet clients flagged, requests answered
+   within a business day.
+4. **Meetings**: an agenda a day ahead and a recap within a day, drafted from the records, on a
+   rhythm.
+5. **Calls**: paste your notes into your AI app and say "debrief this call": it plans todos on the
+   right engagements with owners by expertise, shows you the plan, then records it all
+   (`debrief_call`, `record_call`).
 
 **[Read the guide](docs/guide.md)**, also in Runwell under Accounts > Guide.
 
-A plugin for [Runwell](https://github.com/Martin-Business-Consultants/runwellv2), the core of an
-agency's project management. It owns its tables (`account_management_*`), points at core records by id, and
+A plugin for [Runwell](https://github.com/Martin-Business-Consultants/runwellv2), the core of project management. It owns its tables (`account_management_*`), points at core records by id, and
 extends Runwell only through its plugin hooks, so removing it leaves Runwell as it was.
 
 ## Install
@@ -29,7 +31,7 @@ Then, in **Settings > Account management**, switch it on for the people who look
 From the command line on the server: `bin/rails "plugins:install[Martin-Business-Consultants/runwell-account-management]"`, then restart
 Runwell.
 
-Needs Runwell 2.1.3 or later. A plugin can use only the gems Runwell bundles.
+Needs Runwell 2.21 or later (its pages use the core's section sidebar). A plugin can use only the gems Runwell bundles.
 
 ## Updating
 
@@ -61,3 +63,9 @@ Installs see it in Settings > Plugins.
 ## License
 
 [FSL-1.1-MIT](LICENSE.md), like Runwell.
+
+## 0.3: five things, done well
+
+0.3 narrows the plugin to the five above. The access register, weekly updates, scorecards and the
+playbook page, client digests, nudges, onboarding checklists and who's who are gone; their tables
+stay for now and a later release drops them. Expertise moved to Settings > Account management.

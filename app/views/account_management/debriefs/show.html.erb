@@ -3,6 +3,7 @@
 <% content_for :header do %>
   <%= parent_page @client.name, client_path(@client, tab: "plugin-account_management") %>
 <% end %>
+<%= render "account_management/nav", current: :calls %>
 
 <section class="settings settings--split">
   <div class="settings__panel panel shadow txt-align-start">
@@ -14,13 +15,13 @@
         <span>Copy for AI</span>
       </button>
     </div>
-    <pre class="txt-x-small accounts-brief"><%= markdown %></pre>
+    <%= code_block markdown, language: "markdown" %>
   </div>
 
   <aside class="settings__panel settings__panel--side panel shadow txt-align-start">
     <ol class="record-steps txt-small">
       <li>Paste your notes into your AI app: Claude Code with the <code>runwell</code> CLI, or any app connected to Runwell.</li>
-      <li>It plans the work: each item on the <%= term(:engagement).downcase %> whose scope covers it, owned by whoever’s expertise fits (set on <%= link_to "People", account_management_people_path, class: "txt-link" %>), with commitments and new requests.</li>
+      <li>It plans the work: each item on the <%= term(:engagement).downcase %> whose scope covers it, owned by whoever’s expertise fits (set in Settings &gt; Account management), with commitments and new requests.</li>
       <li>It shows you the plan before anything is written. Say what to change.</li>
       <li>Then it records the call: the notes, the contact, and every item at once.</li>
     </ol>

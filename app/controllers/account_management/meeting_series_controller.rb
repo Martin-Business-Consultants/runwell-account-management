@@ -6,7 +6,7 @@ module AccountManagement
     before_action :set_client
     before_action :require_client_access
     agent_tool :start_meeting_rhythm, on: :create, title: "Set a client's meeting rhythm",
-      description: "cadence: weekly, biweekly or monthly (the same weekday of the month as starts_on, e.g. the second Tuesday). starts_on: the first meeting's date; time_of_day: 24h, in the agency's zone. The next meeting is always planned; each has its agenda due a day ahead.",
+      description: "cadence: weekly, biweekly or monthly (the same weekday of the month as starts_on, e.g. the second Tuesday). starts_on: the first meeting's date; time_of_day: 24h, in the install's zone. The next meeting is always planned; each has its agenda due a day ahead.",
       params: { meeting_series: { title: "string!", cadence: MeetingSeries::CADENCES.keys, starts_on: "date!", time_of_day: "string", owner_id: "integer" } },
       next_tools: %i[list_meetings]
     agent_tool :stop_meeting_rhythm, on: :destroy, title: "Stop a client's meeting rhythm",

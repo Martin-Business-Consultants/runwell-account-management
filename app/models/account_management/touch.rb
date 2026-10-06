@@ -1,6 +1,6 @@
 module AccountManagement
   # One contact with a client: a call, an email, a text, a chat, a visit. Logged by hand from the
-  # Contact quick action, or made here (a nudge, a weekly digest). With meetings, notes, requests
+  # Contact quick action or the client's tab, or by a call debrief. With meetings, notes, requests
   # and approvals it tells when the client last heard from us (Pulse).
   class Touch < ::ApplicationRecord
     include ::Eventful

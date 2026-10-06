@@ -1,8 +1,7 @@
 module AccountManagement
-  # The one person who answers for a client: its meetings, its commitments, its accesses and
-  # its line in their weekly update. Also where the client's account settings live: a backup
-  # who covers while the lead is away, how often the client should hear from us, and whether
-  # they get the weekly digest.
+  # The one person who answers for a client: its meetings, its commitments and its health. Also
+  # where the client's account settings live: a backup who covers while the lead is away, and how
+  # often the client should hear from us.
   class Lead < ::ApplicationRecord
     belongs_to :client, class_name: "::Client"
     belongs_to :user, class_name: "::User"

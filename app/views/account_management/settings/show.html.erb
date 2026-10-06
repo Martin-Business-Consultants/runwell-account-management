@@ -20,7 +20,7 @@
                 <strong><%= member.user.display_name %></strong>
                 <div class="txt-x-small txt-subtle">
                   <%= member.all_clients? ? "Every #{term(:client).downcase}" : pluralize(member.clients.count, term(:client).downcase) %> ·
-                  leads <%= AccountManagement::Lead.where(user: member.user).count %><% if member.away? %> · away until <%= l member.away_until, format: :long %><% end %>
+                  leads <%= @leading.fetch(member.user_id, 0) %><% if member.away? %> · away until <%= l member.away_until, format: :long %><% end %>
                 </div>
               </div>
               <details class="txt-align-start">
@@ -60,14 +60,37 @@
       </section>
     <% end %>
 
+    <section class="settings__section flex flex-column gap">
+      <header>
+        <h2 class="divider">What each person does</h2>
+      </header>
+      <p class="txt-small txt-subtle margin-none">
+        When a call is debriefed, each piece of work goes to whoever’s tags fit it, then whoever has less open. Any words work: code, design, content, seo, ads…
+      </p>
+      <ul class="settings__scrollable-list">
+        <% (@members.map(&:user) + @others.to_a).sort_by(&:display_name).each do |user| %>
+          <%# herb:key user.id %>
+          <li class="flex align-center gap-half txt-small">
+            <%= person_tag user %>
+            <strong class="min-width"><%= user.display_name %></strong>
+            <hr class="separator--horizontal flex-item-grow txt-subtle" aria-hidden="true">
+            <%= form_with url: account_management_person_path(user), method: :patch, scope: :expertise, namespace: "expertise_#{user.id}", class: "flex align-center gap-half" do |form| %>
+              <%= form.text_field :tags, value: @expertise.fetch(user.id, []).join(", "), class: "input txt-small", autocomplete: "off", placeholder: "code, design…", aria: { label: "#{user.display_name}’s expertise" } %>
+              <button type="submit" class="btn txt-x-small txt-nowrap">Save</button>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+
     <section class="settings__section flex flex-column gap-half">
       <header>
         <h2 class="divider">Next</h2>
       </header>
       <ul class="record-steps txt-small">
         <li>Each person picks their <%= term(:client, count: 2).downcase %> in <%= link_to "My clients", account_management_portfolio_path, class: "txt-link" %>.</li>
-        <li>On each <%= term(:client).downcase %>’s Account management tab, choose its lead and a backup, and start its onboarding.</li>
-        <li>The <%= link_to "guide", account_management_guide_path, class: "txt-link" %> walks through a week of using it; the <%= link_to "playbook", account_management_playbook_path, class: "txt-link" %> lists the standards.</li>
+        <li>On each <%= term(:client).downcase %>’s Account management tab, choose its lead and a backup.</li>
+        <li>The <%= link_to "guide", account_management_guide_path, class: "txt-link" %> walks through a week of using it.</li>
       </ul>
     </section>
   </div>

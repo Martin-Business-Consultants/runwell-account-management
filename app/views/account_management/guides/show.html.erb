@@ -4,15 +4,22 @@
 <% leads = AccountManagement::Lead.where(user: Current.user) %>
 
 <% if member %>
-  <%= render "account_management/links" %>
+  <%= render "account_management/nav", current: :guide %>
 <% end %>
 
-<div class="panel panel--wide shadow center txt-align-start flex flex-column gap">
+<div class="panel accounts-panel shadow txt-align-start flex flex-column gap">
   <section class="settings__section">
     <header>
       <h2 class="divider">What it’s for</h2>
     </header>
-    <p>Account management keeps every <%= client %> in play: who looks after each one, when they last heard from us, what’s waiting on whom, how each one is doing, and what needs you today. It’s for the people who look after <%= clients %>, usually your project managers.</p>
+    <p>Account management keeps every <%= client %> in play. It does five things, one per page in the sidebar:</p>
+    <ol>
+      <li><strong>Today:</strong> what needs you across your <%= clients %>, most urgent first.</li>
+      <li><strong><%= clients.upcase_first %>:</strong> who leads each one, how it’s doing this week, and when it last heard from us. Riskiest first.</li>
+      <li><strong>Contacts:</strong> every call, email, text and visit, so a <%= client %> never goes quiet unnoticed.</li>
+      <li><strong>Meetings:</strong> an agenda a day ahead, a recap within a day after, action items that become commitments.</li>
+      <li><strong>Calls:</strong> your notes from a call, debriefed by AI into work on the right <%= term(:engagement, count: 2).downcase %>, owned by the right people.</li>
+    </ol>
   </section>
 
   <section class="settings__section">
@@ -22,7 +29,7 @@
     <ol class="record-steps txt-small">
       <li><strong><%= member ? "✓ It’s switched on for you." : "It isn’t switched on for you yet." %></strong> <% unless member %><%= can?(:manage_settings) ? link_to("Switch it on in Settings", account_management_settings_path, class: "txt-link") : "Ask an owner to switch it on." %><% end %></li>
       <% if member %>
-        <li><strong>You work with <%= member.all_clients? ? "every #{client}" : pluralize(member.clients.count, client) %>.</strong> <%= link_to "Change in My clients", account_management_portfolio_path, class: "txt-link" %></li>
+        <li><strong>You work with <%= member.all_clients? ? "every #{client}" : pluralize(member.clients.count, client) %>.</strong> <%= link_to "Change in My #{clients}", account_management_portfolio_path, class: "txt-link" %></li>
         <li><strong>You lead <%= pluralize(leads.count, client) %><% if leads.where(backup_user_id: nil).exists? %>, <%= leads.where(backup_user_id: nil).count %> without a backup<% end %>.</strong> Set a backup on each <%= client %>’s Account management tab.</li>
         <li><strong>Start each day on <%= link_to "Today", account_management_root_path, class: "txt-link" %>.</strong></li>
       <% end %>
@@ -31,21 +38,12 @@
 
   <section class="settings__section">
     <header>
-      <h2 class="divider">Setting it up (an owner, once)</h2>
+      <h2 class="divider">Setting it up</h2>
     </header>
     <ol>
-      <li><strong>Switch it on for your project managers</strong> in <%= link_to "the Account management settings", account_management_settings_path, class: "txt-link" %>. Only they get Accounts in their menu, a Today list and warnings on their home page, and only they can lead or back up a <%= client %>.</li>
-      <li><strong>Give every <%= client %> a lead and a backup</strong> on its Account management tab. <%= clients.upcase_first %> without a lead show up for managers until they have one.</li>
-    </ol>
-  </section>
-
-  <section class="settings__section">
-    <header>
-      <h2 class="divider">Your first day</h2>
-    </header>
-    <ol>
-      <li><strong>Choose your <%= clients %></strong> in <%= link_to "My clients", account_management_portfolio_path, class: "txt-link" %>: every one, or a group. The ones you lead or back up are always yours.</li>
-      <li><strong>For each <%= client %> you lead,</strong> open its Account management tab and mark <strong>who’s who</strong> (decision-maker, day-to-day, billing, technical, and how they’d rather hear from you), <strong>set a meeting rhythm</strong> so the next meeting is always planned, and start its <strong>onboarding</strong> if it’s new.</li>
+      <li><strong>An owner switches it on</strong> for the people who look after <%= clients %> in <%= link_to "the Account management settings", account_management_settings_path, class: "txt-link" %>, and sets what each person on the team does (code, design, seo…), which is how work from a call finds its owner.</li>
+      <li><strong>Each <%= client %> gets a lead and a backup</strong> on its Account management tab. <%= clients.upcase_first %> without a lead show up for managers until they have one.</li>
+      <li><strong>Each person chooses their <%= clients %></strong> in My <%= clients %>: every one, or a group. The ones they lead or back up are always theirs.</li>
     </ol>
   </section>
 
@@ -54,9 +52,10 @@
       <h2 class="divider">Every day</h2>
     </header>
     <ul>
-      <li><strong>Work <%= link_to "Today", account_management_root_path, class: "txt-link" %> from the top:</strong> Overdue, Today, This week, then Keep an eye on. Each item links to where you act on it. Not ready? <strong>Snooze</strong> it (the bell) until tomorrow, in three days or next week; it comes back on its own.</li>
-      <li><strong>Log every contact.</strong> A call, an email, a text, a chat, a visit: press <kbd>a</kbd>, then <strong>Contact</strong>, or use <strong>Log a contact</strong> on the <%= client %>’s tab. That’s how Runwell knows a <%= client %> has heard from you. Meetings, call, meeting and email notes, requests, agreements and digests count on their own; internal notes don’t.</li>
-      <li><strong>Answer requests within a business day.</strong> A request is answered when it’s triaged, or when you log a contact with that <%= client %> after it came in. One that came in on Friday is due by the end of Monday.</li>
+      <li><strong>Work Today from the top:</strong> Overdue, Today, This week, then Keep an eye on. Each item links to where you act on it. Not ready? <strong>Snooze</strong> it (the bell); it comes back on its own.</li>
+      <li><strong>Log every contact.</strong> Press <kbd>a</kbd>, then <strong>Contact</strong>, or use <strong>Log a contact</strong> on the <%= client %>’s tab. Meetings, call and email notes, requests and agreements count on their own; internal notes don’t. A <%= client %> is quiet after <%= AccountManagement::Playbook::CONTACT_EVERY %> days without us, unless its lead sets another cadence.</li>
+      <li><strong>Answer requests within <%= pluralize(AccountManagement::Playbook::REPLY_WITHIN, "business day") %>.</strong> A request is answered when it’s triaged, or when you log a contact with that <%= client %> after it came in.</li>
+      <li><strong>By the end of Thursday, set each <%= client %>’s health:</strong> on track, at risk or off track, with a line saying why.</li>
     </ul>
   </section>
 
@@ -65,89 +64,28 @@
       <h2 class="divider">Every meeting</h2>
     </header>
     <ol>
-      <li><strong>Plan it,</strong> or let the rhythm plan it. Its agenda is due <strong>a day ahead</strong>.</li>
-      <li><strong>Draft the agenda from the records:</strong> what’s open from last time, what we owe, what they owe, decisions we need and what’s coming up. Read it, add what the records can’t know, and send it.</li>
-      <li><strong>After it, start the recap from the agenda,</strong> fill in the decisions, add each action item with an owner and a date (they become commitments), and send it <strong>within a day</strong>.</li>
+      <li><strong>Plan it,</strong> or set a rhythm on the <%= client %>’s tab so the next one is always planned.</li>
+      <li><strong>Draft the agenda from the records</strong> (what’s open from last time, what each side owes, decisions we need, what’s coming up), add what the records can’t know, and send it <strong>a day ahead</strong>.</li>
+      <li><strong>After it, start the recap from the agenda,</strong> fill in the decisions, add each action item with an owner and a date, and send it <strong>within a day</strong>.</li>
     </ol>
   </section>
 
   <section class="settings__section">
     <header>
-      <h2 class="divider">After every call: debrief it</h2>
+      <h2 class="divider">After every call</h2>
     </header>
     <ol>
-      <li><strong>Once,</strong> set everyone’s expertise on <%= link_to "People", account_management_people_path, class: "txt-link" %> (code, design, content, seo, ads…). That’s how work finds its owner.</li>
-      <li><strong>After the call,</strong> paste your notes into your AI app (Claude Code with the <code>runwell</code> CLI, or any app connected to Runwell) and say <strong>“debrief this call with &lt;<%= client %>&gt;”</strong>. It reads the <%= client %>’s open <%= term(:engagement, count: 2).downcase %> and agreed scope, its people, and the team’s expertise and workload.</li>
-      <li><strong>It shows you the plan first:</strong> each todo with its <%= term(:engagement).downcase %>, owner and due date, the commitments, requests for anything outside the agreed scope, and health. Nothing is written yet. Say what to change.</li>
-      <li><strong>Then it records the call:</strong> the notes, the contact and every item at once, on the call’s page.</li>
+      <li><strong>Paste your notes into your AI app</strong> (Claude Code with the <code>runwell</code> CLI, or any app connected to Runwell) and say <strong>“debrief this call with &lt;<%= client %>&gt;”</strong>.</li>
+      <li><strong>It shows you the plan first:</strong> each todo with its <%= term(:engagement).downcase %>, owner and due date, the commitments, requests for anything outside the agreed scope, and health. Say what to change.</li>
+      <li><strong>Then it records the call:</strong> the notes, the contact and every item at once, listed under Calls.</li>
     </ol>
-    <p class="txt-small txt-subtle">Each todo goes on the <%= term(:engagement).downcase %> whose agreed scope covers it; anything nobody agreed to becomes a request. The owner is whoever’s expertise fits, then whoever has less open work; client-facing work goes to the lead; nobody who’s away. No AI app to hand? The <%= client %>’s tab has <strong>Debrief a call</strong> with <strong>Copy for AI</strong>.</p>
-  </section>
-
-  <section class="settings__section">
-    <header>
-      <h2 class="divider">When you’re waiting on the <%= client %></h2>
-    </header>
-    <p>Their overdue commitments, agreements they haven’t decided on, and access we asked for show under <strong>Waiting on them</strong> on the <%= client %>’s tab, and on Today once they’re <%= (AccountManagement::Playbook::WAITING_NUDGE / 1.day).round %> days old. Press <strong>Nudge</strong>: Runwell drafts a short email to the right people, you read it and send it, and it’s logged as contact. Replies come to you.</p>
-  </section>
-
-  <section class="settings__section">
-    <header>
-      <h2 class="divider">Every week</h2>
-    </header>
-    <ul>
-      <li><strong>By the end of Thursday, set each <%= client %>’s health:</strong> on track, at risk or off track, with a line saying why. <%= link_to clients.upcase_first, account_management_clients_path, class: "txt-link" %> lists them riskiest first.</li>
-      <li><strong>By the end of Friday, send your <%= link_to "weekly update", account_management_weekly_updates_path, class: "txt-link" %>.</strong> It starts from a draft of the week: each <%= client %>’s health, last contact, meetings, what shipped, commitments, what’s due, what we’re waiting on them for and accounts needing attention. Add the blockers, the risks and how each <%= client %> feels.</li>
-      <li><strong>The weekly digest, if you switch it on for a <%= client %>:</strong> each Friday Runwell drafts a summary for them (finished work shared with them, meetings, what we’re waiting on them for, what’s next from us). Nothing internal goes in. Read it, send it, and it counts as contact.</li>
-    </ul>
+    <p class="txt-small txt-subtle">No AI app to hand? The <%= client %>’s tab has <strong>Debrief a call</strong> with <strong>Copy for AI</strong>.</p>
   </section>
 
   <section class="settings__section">
     <header>
       <h2 class="divider">When you’re away</h2>
     </header>
-    <p>Set <strong>Away until</strong> in <%= link_to "My clients", account_management_portfolio_path, class: "txt-link" %>. While you’re away, each <%= client %> you lead goes to its backup: their Today, their home warnings. Clear it when you’re back.</p>
-  </section>
-
-  <section class="settings__section">
-    <header>
-      <h2 class="divider">Onboarding and offboarding</h2>
-    </header>
-    <p>Each <%= client %>’s tab can run a checklist. Steps the records can prove tick themselves; you tick the rest, and it shows on Today until it’s done.</p>
-    <div class="accounts-columns">
-      <% AccountManagement::Playbook::CHECKLISTS.each do |kind, steps| %>
-        <%# herb:key kind %>
-        <div>
-          <h3 class="txt-medium margin-none"><%= AccountManagement::Checklist::KINDS.fetch(kind) %></h3>
-          <ol class="txt-small">
-            <% steps.each do |step| %>
-              <%# herb:key step.key %>
-              <li><%= step.label %><% if step.check %> <span class="txt-subtle">(ticks itself)</span><% end %></li>
-            <% end %>
-          </ol>
-        </div>
-      <% end %>
-    </div>
-  </section>
-
-  <section class="settings__section">
-    <header>
-      <h2 class="divider">The standards</h2>
-    </header>
-    <p>Each lead’s scorecard (<%= link_to "Team", account_management_team_path, class: "txt-link" %>) measures these over the last 30 days from what actually happened, and lists the misses. Only what’s settled counts. The numbers are in the <%= link_to "playbook", account_management_playbook_path, class: "txt-link" %>.</p>
-    <ul>
-      <li>Agendas a day ahead, recaps within a day</li>
-      <li>Our commitments done by their date</li>
-      <li>The weekly update by Friday</li>
-      <li>Requests answered within <%= pluralize(AccountManagement::Playbook::REPLY_WITHIN, "business day") %></li>
-      <li>Every <%= client %> in touch within its cadence (<%= AccountManagement::Playbook::CONTACT_EVERY %> days unless its lead changes it)</li>
-    </ul>
-  </section>
-
-  <section class="settings__section">
-    <header>
-      <h2 class="divider">With an AI agent</h2>
-    </header>
-    <p>Everything here is a tool for a connected AI (Settings &gt; Connected apps), and the debrief workflow above is built in. Otherwise, ask it to start with <code>show_account_today</code>, log contacts with <code>log_client_contact</code>, draft agendas with <code>draft_meeting_agenda</code>, or preview a nudge with <code>preview_nudge</code>. Anything that emails a <%= client %> asks you to confirm first.</p>
+    <p>Set <strong>Away until</strong> in My <%= clients %>. While you’re away, each <%= client %> you lead goes to its backup: their Today, their home warnings.</p>
   </section>
 </div>

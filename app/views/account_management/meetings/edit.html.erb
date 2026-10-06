@@ -3,6 +3,7 @@
 <% content_for :header do %>
   <%= parent_page @meeting.title.truncate(40), account_management_meeting_path(@meeting) %>
 <% end %>
+<%= render "account_management/nav", current: :meetings %>
 
 <section class="settings settings--split">
   <div class="settings__panel panel shadow txt-align-start">

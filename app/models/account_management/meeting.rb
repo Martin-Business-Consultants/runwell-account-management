@@ -1,8 +1,8 @@
 module AccountManagement
   # A client meeting and the paper around it: the agenda sent at least a day ahead, and the recap
   # (decisions, then action items with owners and dates) sent within a day after. Sending stamps
-  # the time, which is what the scorecard counts; a sent agenda or recap never changes. Action
-  # items are core commitments, so they show on the client, on home and in the scorecard.
+  # the time, for good: a sent agenda or recap never changes. Action items are core commitments,
+  # so they show on the client and on home.
   #
   # Its state is derived: planned, then agenda due (a day or less before the agenda's deadline),
   # then recap due once it has started, then done when the recap is out. Or cancelled.
@@ -76,7 +76,7 @@ module AccountManagement
     def agenda_late? = !cancelled? && (agenda_sent? ? agenda_sent_at > agenda_due_at : Time.current > agenda_due_at)
     def recap_late? = !cancelled? && (recap_sent? ? recap_sent_at > recap_due_at : Time.current > recap_due_at)
 
-    # Whether each paper went out on time, for the scorecard: nil while it can still make it.
+    # Whether each paper went out on time: nil while it can still make it.
     def agenda_on_time
       return if cancelled?
       return agenda_sent_at <= agenda_due_at if agenda_sent?
@@ -91,9 +91,8 @@ module AccountManagement
       false if Time.current > recap_due_at
     end
 
-    # Who it goes to by default: the decision-makers and day-to-day contacts, or every active
-    # contact with an email when nobody is marked (ContactProfile).
-    def recipients = ContactProfile.recipients(client)
+    # Who it goes to by default: the client's active contacts with an email.
+    def recipients = client.contacts.active.where.not(email: [ nil, "" ]).ordered
 
     def draft = AgendaDraft.new(self)
 

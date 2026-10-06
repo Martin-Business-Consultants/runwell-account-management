@@ -2,6 +2,7 @@
 <% content_for :header do %>
   <%= parent_page @client.name, client_path(@client, tab: "plugin-account_management") %>
 <% end %>
+<%= render "account_management/nav", current: :calls %>
 
 <section class="settings settings--split">
   <div class="settings__panel panel shadow txt-align-start">

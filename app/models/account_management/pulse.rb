@@ -1,8 +1,8 @@
 module AccountManagement
   # When each client last heard from us, or we from them, from everything that counts as
   # contact: logged contacts, meetings held, agendas and recaps sent, call / meeting / email
-  # notes, requests they sent, agreements sent and their decisions, and weekly digests. Internal
-  # notes don't count. A client is quiet once that's older than its lead's contact cadence.
+  # notes, requests they sent, and agreements sent and their decisions. Internal notes don't
+  # count. A client is quiet once that's older than its lead's contact cadence.
   class Pulse
     def initialize(client_ids)
       @client_ids = Array(client_ids)
@@ -12,13 +12,6 @@ module AccountManagement
     def last_contacts
       @last_contacts ||= sources.each_with_object({}) do |(relation, client_column, time_column), last|
         relation.group(client_column).maximum(time_column).each { |client_id, time| last[client_id] = [ last[client_id], time ].compact.max if time }
-      end
-    end
-
-    # { client_id => [every contact time since] }, for the scorecard.
-    def contact_times(since)
-      sources.each_with_object(Hash.new { |hash, key| hash[key] = [] }) do |(relation, client_column, time_column), times|
-        relation.where("#{time_column} >= ?", since).pluck(Arel.sql(client_column.to_s), Arel.sql(time_column.to_s)).each { |client_id, time| times[client_id] << time if time }
       end
     end
 
@@ -52,8 +45,7 @@ module AccountManagement
               .where(engagements: { client_id: ids }), "engagements.client_id", "notes.occurred_at" ],
           [ ::Request.where(client_id: ids), "requests.client_id", "requests.received_at" ],
           [ versions, "engagements.client_id", "agreement_versions.sent_at" ],
-          [ ::Approval.joins(agreement_version: :engagement).where(engagements: { client_id: ids }), "engagements.client_id", "approvals.decided_at" ],
-          [ Digest.where(client_id: ids), "account_management_digests.client_id", "account_management_digests.sent_at" ]
+          [ ::Approval.joins(agreement_version: :engagement).where(engagements: { client_id: ids }), "engagements.client_id", "approvals.decided_at" ]
         ]
       end
   end

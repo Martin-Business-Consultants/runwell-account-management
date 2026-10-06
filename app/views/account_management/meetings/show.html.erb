@@ -3,6 +3,7 @@
 <% content_for :header do %>
   <%= parent_page @meeting.client.name, client_path(@meeting.client, tab: "plugin-account_management") %>
 <% end %>
+<%= render "account_management/nav", current: :meetings %>
 
 <section class="settings settings--split">
   <div class="settings__panel panel shadow txt-align-start">

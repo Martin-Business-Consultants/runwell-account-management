@@ -9,6 +9,4 @@ json.clients @clients do |client|
   json.lead agent_user(lead&.user)
   json.backup agent_user(lead&.backup_user)
   json.next_meeting(@next_meetings[client.id]&.then { { id: it.id, title: it.title, starts_at: it.starts_at } })
-  json.waiting_on_them(Array(@waiting[client.id]).map { { label: it.label, detail: it.detail, nudge: "#{it.record.class.name.demodulize}:#{it.record.id}" } })
-  json.checklists(client.account_checklists.map { { id: it.id, kind: it.kind, steps: it.steps.map { |step| { key: step.key, label: step.label, done: step.done, automatic: step.automatic } } } })
 end

@@ -1,30 +1,28 @@
 module AccountManagement
   # A Runwell plugin: the working system of whoever runs client relationships, switched on per
-  # person (Member) in Settings > Account management; each chooses all clients or a group. Each
-  # client has a lead and a backup, a contact cadence and, optionally, a weekly digest. Today
-  # (Cockpit) lists what needs someone across their clients, most urgent first. Every contact is
-  # logged (Touch) and, with meetings, notes, requests and approvals, says when a client last
-  # heard from us (Pulse); requests are answered within a business day (Replies); what we're
-  # waiting on a client for can be nudged (Waiting). Meetings run on a rhythm (MeetingSeries),
-  # with agendas and recaps drafted from the records. Each client's health is set weekly, who's
-  # who at the client is recorded (ContactProfile), and onboarding and offboarding are checklists.
-  # The access register, weekly updates and a scorecard against the playbook complete it. Owns
-  # its tables and reaches the core only through Runwell::Plugins and load hooks. docs/guide.md
-  # is the user's guide.
+  # person (Member) in Settings > Account management; each chooses all clients or a group. It does
+  # five things. Today (Cockpit) lists what needs someone across their clients, most urgent first.
+  # Clients shows each one's lead and backup (Lead), its health this week (HealthCheck) and when it
+  # last heard from us (Pulse). Every contact is logged (Touch), and requests are answered within a
+  # business day (Replies). Meetings carry an agenda before and a recap after, on a rhythm
+  # (MeetingSeries). After a call, an AI harness debriefs it into work (Debrief, Call::Plan). Owns
+  # its tables and reaches the core only through Runwell::Plugins and load hooks. docs/guide.md is
+  # the user's guide.
+  #
+  # Tables left from features it no longer has (accesses, checklists, contact profiles, digests,
+  # weekly updates) are kept until a later release drops them. The access register's rows point
+  # at their client without a cascade, so clear_retired_rows removes them before a client goes.
   class Engine < ::Rails::Engine
     initializer "account_management.routes" do |app|
       app.routes.append do
         scope "accounts", module: "account_management", as: "account_management" do
           get "/", to: "todays#show", as: :root
-          get "team", to: "dashboards#show", as: :team
           resource :guide, only: :show
-          resource :playbook, only: :show
           resource :settings, only: :show
           resources :members, only: %i[create update destroy]
           resource :portfolio, only: %i[show update]
-          resources :people, only: %i[index update]
+          resources :people, only: :update
           resources :calls, only: %i[index show]
-          resources :scorecards, only: :show
           resources :meetings do
             member do
               post :send_agenda
@@ -35,31 +33,15 @@ module AccountManagement
             end
             resources :action_items, only: :create
           end
-          resources :accesses, except: :show do
-            post :verify, on: :member
-          end
           resources :clients, only: :index do
             resource :lead, only: :update
             resources :health_checks, only: :create
             resources :meeting_series, only: %i[create destroy]
-            resources :checklists, only: %i[create destroy] do
-              post :toggle, on: :member
-            end
-            resource :digest, only: %i[show update] do
-              post :deliver
-            end
             resource :debrief, only: :show
             resources :calls, only: :create
           end
-          resources :contacts, only: [] do
-            resource :profile, only: :update, controller: "contact_profiles"
-          end
           resources :touches, only: %i[index create destroy]
-          resources :nudges, only: %i[new create]
           resource :snooze, only: %i[create destroy]
-          resources :weekly_updates, path: "updates", except: :destroy do
-            post :submit, on: :member
-          end
         end
       end
     end
@@ -74,10 +56,9 @@ module AccountManagement
         has_many :account_touches, class_name: "AccountManagement::Touch", dependent: :delete_all
         has_many :account_health_checks, class_name: "AccountManagement::HealthCheck", dependent: :delete_all
         has_many :account_meeting_series, class_name: "AccountManagement::MeetingSeries", dependent: :destroy
-        has_many :account_checklists, class_name: "AccountManagement::Checklist", dependent: :delete_all
         has_many :account_calls, class_name: "AccountManagement::Call", dependent: :destroy
         has_many :account_meetings, class_name: "AccountManagement::Meeting", dependent: :destroy
-        has_many :account_accesses, class_name: "AccountManagement::Access", dependent: :destroy
+        before_destroy { AccountManagement::Engine.clear_retired_rows(self) }
       end
       ActiveSupport.on_load(:runwell_engagement) do
         has_many :account_meetings, class_name: "AccountManagement::Meeting", dependent: :nullify
@@ -85,20 +66,25 @@ module AccountManagement
       ActiveSupport.on_load(:runwell_user) do
         has_many :account_leads, class_name: "AccountManagement::Lead", dependent: :destroy
         has_many :account_meetings, class_name: "AccountManagement::Meeting", foreign_key: :owner_id, dependent: :nullify
-        has_many :weekly_updates, class_name: "AccountManagement::WeeklyUpdate", dependent: :destroy
         has_one :account_member, class_name: "AccountManagement::Member", dependent: :destroy
         has_one :account_expertise, class_name: "AccountManagement::Expertise", dependent: :destroy
       end
     end
 
+    def self.clear_retired_rows(client)
+      connection = ActiveRecord::Base.connection
+      return unless connection.table_exists?(:account_management_accesses)
+
+      connection.exec_delete("DELETE FROM account_management_accesses WHERE client_id = #{Integer(client.id)}")
+    end
+
     config.to_prepare do
       Runwell::Plugins.register :account_management, name: "Account management", version: AccountManagement::VERSION, author: "Runwell",
-        enabled_by_default: false, requires: ">= 2.1.3", homepage: "https://github.com/Martin-Business-Consultants/runwell-account-management",
-        description: "Keeps every client in play for the project managers it’s switched on for: a Today list across their clients, contacts logged and quiet clients flagged, requests answered within a business day, meeting rhythms with drafted agendas and recaps, nudges for what clients owe us, weekly health, who’s who at each client, onboarding and offboarding checklists, backup leads, and an optional weekly digest for clients."
+        enabled_by_default: false, requires: ">= 2.21.0", homepage: "https://github.com/Martin-Business-Consultants/runwell-account-management",
+        description: "Keeps every client in play for the people who look after them: a Today list of what needs you, each client’s lead, health and last contact, every contact logged, meetings with agendas and recaps, and call notes debriefed into work by AI."
       Runwell::Plugins.nav :account_management, "Accounts", -> { account_management_root_path if AccountManagement::Member.active?(Current.user) }
       Runwell::Plugins.settings :account_management, "Account management", -> { account_management_settings_path }
-      Runwell::Plugins.permission :account_management, :manage_accounts, name: "Assign account leads and keep the access register", roles: %w[owner manager]
-      Runwell::Plugins.permission :account_management, :view_scorecards, name: "See everyone’s account scorecard and weekly updates", roles: %w[owner manager]
+      Runwell::Plugins.permission :account_management, :manage_accounts, name: "Assign account leads and set the team’s expertise", roles: %w[owner manager]
       Runwell::Plugins.slot :client_panel, :account_management, "account_management/slots/client_panel"
       Runwell::Plugins.slot :engagement_panel, :account_management, "account_management/slots/engagement_panel"
       Runwell::Plugins.quick_action :account_management, label: "Contact", title: "Log a client contact", icon: "comment",

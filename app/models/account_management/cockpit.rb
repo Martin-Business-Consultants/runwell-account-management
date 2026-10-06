@@ -21,7 +21,7 @@ module AccountManagement
     def items
       @items ||= begin
         snoozed = Snooze.keys_for(@user)
-        all = meetings + replies + commitments + quiet + waiting + health_items + rhythm + digests + updates + accesses + checklists
+        all = meetings + replies + commitments + quiet + health_items + rhythm
         all.reject { snoozed.include?(it.key) }.sort_by { [ URGENCIES.keys.index(it.urgency), it.mine ? 0 : 1 ] }
       end
     end
@@ -82,12 +82,6 @@ module AccountManagement
         end
       end
 
-      def waiting
-        Waiting.items(client_ids).select(&:nudgeable?).map do |entry|
-          item(entry.key, :week, :waiting, "Waiting on #{entry.client.name}: #{entry.label}", entry.detail,
-            @routes.new_account_management_nudge_path(subject: "#{entry.record.class.name}:#{entry.record.id}"), entry.client)
-        end
-      end
 
       def health_items
         week = HealthCheck.week_of
@@ -96,7 +90,7 @@ module AccountManagement
           check = health[client.id]
           path = @routes.client_path(client, tab: "plugin-account_management")
           if due && client.account_lead && (check.nil? || check.week_of < week)
-            item("health:#{client.id}:#{week}", :week, :health, "How is #{client.name} doing this week?", "set its health for Friday’s update", path, client)
+            item("health:#{client.id}:#{week}", :week, :health, "How is #{client.name} doing this week?", "set its health by the end of Thursday", path, client)
           elsif check && check.status != "on_track"
             item("risk:#{client.id}:#{check.week_of}", check.status == "off_track" ? :today : :watch, :health, "#{client.name} is #{check.label.downcase}", check.reason, path, client)
           end
@@ -109,38 +103,6 @@ module AccountManagement
         clients.reject { planned.include?(it.id) || with_series.include?(it.id) }.select(&:account_lead).map do |client|
           item("rhythm:#{client.id}", :watch, :meeting, "No meeting planned with #{client.name}", "set a rhythm, or plan the next one",
             @routes.client_path(client, tab: "plugin-account_management"), client)
-        end
-      end
-
-      def digests
-        week = Digest.week_of
-        return [] unless Date.current >= week + (Playbook::DIGEST_DAY - 1)
-
-        sent = Digest.sent.where(client_id: client_ids, week_of: week).pluck(:client_id).to_set
-        clients.select { it.account_lead&.digest_enabled? && !sent.include?(it.id) }.map do |client|
-          item("digest:#{client.id}:#{week}", :today, :digest, "Send #{client.name}’s weekly digest", "due by the end of today",
-            @routes.account_management_client_digest_path(client), client)
-        end
-      end
-
-      def updates
-        Attention.updates(@user).map do |update|
-          path = update.persisted? ? @routes.edit_account_management_weekly_update_path(update) : @routes.new_account_management_weekly_update_path(week_of: update.week_of)
-          item("update:#{update.week_of}", update.late? ? :overdue : :today, :update, "Your weekly update: #{update.label.downcase_first}", "due #{I18n.l update.due_at, format: :short}", path, nil)
-        end
-      end
-
-      def accesses
-        Access.where(client_id: client_ids).includes(:client).ordered.reject(&:in_order?).map do |access|
-          item("access:#{access.id}", :watch, :access, "#{access.client.name}: #{access.platform_label} #{access.name}", access.problems.first,
-            @routes.edit_account_management_access_path(access), access.client)
-        end
-      end
-
-      def checklists
-        Checklist.unfinished.where(client_id: client_ids).includes(:client).map do |checklist|
-          item("checklist:#{checklist.id}", :watch, :checklist, "#{checklist.label}: #{checklist.client.name}", "#{checklist.done_count} of #{checklist.steps.size} steps done",
-            @routes.client_path(checklist.client, tab: "plugin-account_management", anchor: "checklists"), checklist.client)
         end
       end
   end

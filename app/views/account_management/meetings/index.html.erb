@@ -1,7 +1,7 @@
 <% @page_title = "Meetings" %>
 <% clients = ::Client.where(id: AccountManagement::Meeting.select(:client_id)).ordered %>
 
-<%= render "account_management/links" %>
+<%= render "account_management/nav", current: :meetings %>
 
 <% content_for :index_filters do %>
   <%= render "layouts/shared/quick_filter", title: "Show…", param: :state, current: @state,

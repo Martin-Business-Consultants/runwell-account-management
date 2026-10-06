@@ -1,0 +1,20 @@
+<%# locals: (current:) %>
+<%# The Accounts sidebar beside every Accounts page (Runwell's section_nav): the five things it
+    does, then your own clients, the guide and, for owners, its settings. %>
+<% content_for :header do %>
+  <h1 class="header__title">Accounts</h1>
+<% end %>
+<% section_nav "Accounts" do %>
+  <%= section_nav_link "Today", account_management_root_path, icon: "check-circle", current: current == :today %>
+  <%= section_nav_link term(:client, count: 2), account_management_clients_path, icon: "everyone", current: current == :clients %>
+  <%= section_nav_link "Contacts", account_management_touches_path, icon: "comment", current: current == :contacts %>
+  <%= section_nav_link "Meetings", account_management_meetings_path, icon: "clipboard", current: current == :meetings %>
+  <%= section_nav_link "Calls", account_management_calls_path, icon: "ai", current: current == :calls %>
+
+  <%= section_nav_heading "You" %>
+  <%= section_nav_link "My #{term(:client, count: 2).downcase}", account_management_portfolio_path, icon: "person", current: current == :portfolio %>
+  <%= section_nav_link "Guide", account_management_guide_path, icon: "lifebuoy", current: current == :guide %>
+  <% if can?(:manage_settings) %>
+    <%= section_nav_link "Settings", account_management_settings_path, icon: "gear", current: false %>
+  <% end %>
+<% end %>

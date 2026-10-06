@@ -5,7 +5,7 @@ module AccountManagement
     agent_tool :list_meetings, on: :index, title: "List client meetings",
       params: { state: %w[upcoming due past all], client_id: "integer", owner: %w[anyone me] }
     agent_tool :create_meeting, on: :create, title: "Plan a client meeting",
-      description: "record: \"Type:id\" for a Client or Engagement. starts_on and starts_at_time (24h, \"14:30\") are when it starts, in the agency's time zone (the client's own zone is only for what they see). owner_id: who runs it (defaults to the client's lead, then you). Write the agenda now or later; it goes out at least a day ahead.",
+      description: "record: \"Type:id\" for a Client or Engagement. starts_on and starts_at_time (24h, \"14:30\") are when it starts, in the install's time zone (the client's own zone is only for what they see). owner_id: who runs it (defaults to the client's lead, then you). Write the agenda now or later; it goes out at least a day ahead.",
       params: { record: "string!", meeting: { title: "string!", starts_on: "date!", starts_at_time: "string", owner_id: "integer", agenda: "text" } },
       next_tools: %i[send_meeting_agenda]
     agent_tool :show_meeting, on: :show, title: "Show a client meeting",
@@ -53,7 +53,7 @@ module AccountManagement
     def new
       record = QuickAction.locate(params[:record], Meeting::RECORD_TYPES) if params[:record].present?
       record ||= ::Client.find_by(id: params[:client_id])
-      @meeting = Meeting.new(starts_on: Date.tomorrow, starts_at_time: "10:00")
+      @meeting = Meeting.new(starts_at: Date.tomorrow.in_time_zone.change(hour: 10))
       @meeting.about = record if record
       @meeting.agenda = @meeting.draft.agenda_html if @meeting.client
     end

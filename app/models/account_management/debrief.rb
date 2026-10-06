@@ -36,7 +36,7 @@ module AccountManagement
       lines = [ "# Debrief a call with #{@client.name}", "" ]
       lines << "Lead: #{data[:client][:lead]&.dig(:name) || "nobody"}#{" · backup: #{data[:client][:backup][:name]}" if data[:client][:backup]}"
       lines << "" << "## How to do it" << "" << STEPS << "## Their people" << ""
-      data[:contacts].each { lines << "- #{it[:name]} (contact_id #{it[:id]})#{": #{it[:roles].join(", ")}" if it[:roles].any?}#{", prefers #{it[:prefers]}" if it[:prefers]}" }
+      data[:contacts].each { lines << "- #{it[:name]} (contact_id #{it[:id]})#{", can approve" if it[:can_approve]}" }
       lines << "" << "## Open engagements" << ""
       data[:engagements].each do |engagement|
         lines << "### #{engagement[:ref]} #{engagement[:title]} (#{engagement[:label]}, #{engagement[:state]})" << ""
@@ -72,11 +72,7 @@ module AccountManagement
       def person_ref(user) = user && { id: user.id, name: user.display_name }
 
       def contacts
-        profiles = ContactProfile.for_client(@client).index_by(&:contact_id)
-        @client.contacts.active.ordered.map do |contact|
-          profile = profiles[contact.id]
-          { id: contact.id, name: contact.name, email: contact.email, roles: profile&.role_labels || [], prefers: profile&.channel_label&.downcase }
-        end
+        @client.contacts.active.ordered.map { { id: it.id, name: it.name, email: it.email, can_approve: it.can_approve? } }
       end
 
       def engagements
