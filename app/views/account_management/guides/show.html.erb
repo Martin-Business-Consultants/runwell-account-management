@@ -17,7 +17,7 @@
       <li><strong>Today:</strong> what needs you across your <%= clients %>, most urgent first.</li>
       <li><strong><%= clients.upcase_first %>:</strong> who leads each one, how it’s doing this week, and when it last heard from us. Riskiest first.</li>
       <li><strong>Contacts:</strong> every call, email, text and visit, so a <%= client %> never goes quiet unnoticed.</li>
-      <li><strong>Meetings:</strong> an agenda a day ahead, a recap within a day after, action items that become commitments.</li>
+      <li><strong>Meetings:</strong> an agenda a day ahead, a recap within a day after, action items that become <%= term(:work).downcase %> (ours) or are kept as their promises.</li>
       <li><strong>Calls:</strong> your notes from a call, debriefed by AI into work on the right <%= term(:engagement, count: 2).downcase %>, owned by the right people.</li>
     </ol>
   </section>
@@ -53,7 +53,7 @@
     </header>
     <ul>
       <li><strong>Work Today from the top:</strong> Overdue, Today, This week, then Keep an eye on. Each item links to where you act on it. Not ready? <strong>Snooze</strong> it (the bell); it comes back on its own.</li>
-      <li><strong>Log every contact.</strong> Press <kbd>a</kbd>, then <strong>Contact</strong>, or use <strong>Log a contact</strong> on the <%= client %>’s tab. Meetings, call and email notes, requests and agreements count on their own; internal notes don’t. A <%= client %> is quiet after <%= AccountManagement::Playbook::CONTACT_EVERY %> days without us, unless its lead sets another cadence.</li>
+      <li><strong>Log every contact.</strong> Press <kbd>a</kbd>, then <strong>Contact</strong>, or use <strong>Log a contact</strong> on the <%= client %>’s tab. Meetings, call and email notes and requests count on their own; internal notes don’t. A <%= client %> is quiet after <%= AccountManagement::Playbook::CONTACT_EVERY %> days without us, unless its lead sets another cadence.</li>
       <li><strong>Answer requests within <%= pluralize(AccountManagement::Playbook::REPLY_WITHIN, "business day") %>.</strong> A request is answered when it’s triaged, or when you log a contact with that <%= client %> after it came in.</li>
       <li><strong>By the end of Thursday, set each <%= client %>’s health:</strong> on track, at risk or off track, with a line saying why.</li>
     </ul>
@@ -76,7 +76,7 @@
     </header>
     <ol>
       <li><strong>Paste your notes into your AI app</strong> (Claude Code with the <code>runwell</code> CLI, or any app connected to Runwell) and say <strong>“debrief this call with &lt;<%= client %>&gt;”</strong>.</li>
-      <li><strong>It shows you the plan first:</strong> each todo with its <%= term(:engagement).downcase %>, owner and due date, the commitments, requests for anything outside the agreed scope, and health. Say what to change.</li>
+      <li><strong>It shows you the plan first:</strong> each todo with its <%= term(:engagement).downcase %>, owner and due date, what they promised, requests for anything outside what its engagements cover, and health. Say what to change.</li>
       <li><strong>Then it records the call:</strong> the notes, the contact and every item at once, listed under Calls.</li>
     </ol>
     <p class="txt-small txt-subtle">No AI app to hand? The <%= client %>’s tab has <strong>Debrief a call</strong> with <strong>Copy for AI</strong>.</p>

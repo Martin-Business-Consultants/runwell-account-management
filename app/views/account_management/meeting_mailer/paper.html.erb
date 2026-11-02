@@ -5,11 +5,12 @@
 <% else %>
   <p>Thanks for your time at <strong><%= @meeting.title %></strong>. Here’s what we covered and agreed.</p>
   <%= rich_text @meeting.recap %>
-  <% if @meeting.commitments.any? %>
+  <% items = @meeting.action_items %>
+  <% if items.any? %>
     <p><strong>Action items</strong></p>
     <ul>
-      <% @meeting.commitments.order(:due_on).each do |commitment| %>
-        <li><%= commitment.description %>: <%= commitment.owner_name %>, by <%= l commitment.due_on, format: :long %></li>
+      <% items.each do |item| %>
+        <li><%= item.description %>: <%= item.owner_name %><% if item.due_on %>, by <%= l item.due_on, format: :long %><% end %></li>
       <% end %>
     </ul>
   <% end %>

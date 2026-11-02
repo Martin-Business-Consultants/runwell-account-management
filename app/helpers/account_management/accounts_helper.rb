@@ -23,6 +23,15 @@ module AccountManagement
       "#{ours} · #{l meeting.starts_at.in_time_zone(meeting.client.zone), format: "%-l:%M %p %Z"} for them"
     end
 
+    # Whose an action item is: ours (work, led by one of us) or theirs (a promise, the client's or
+    # one contact's).
+    def account_action_owner_options(client)
+      {
+        "Your side" => [ [ "We", "us" ] ] + ::User.active.people.ordered.map { [ it.display_name, "user:#{it.id}" ] },
+        client.name => [ [ client.name, "client" ] ] + client.contacts.active.ordered.map { [ it.name, "contact:#{it.id}" ] }
+      }
+    end
+
     # The people account management is switched on for: who can lead, back up or run meetings.
     def account_people_options = ::User.active.people.where(id: AccountManagement::Member.select(:user_id)).ordered.map { [ it.display_name, it.id ] }
 

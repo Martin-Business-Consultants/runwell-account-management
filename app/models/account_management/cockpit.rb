@@ -21,7 +21,7 @@ module AccountManagement
     def items
       @items ||= begin
         snoozed = Snooze.keys_for(@user)
-        all = meetings + replies + commitments + quiet + health_items + rhythm
+        all = meetings + replies + work + quiet + health_items + rhythm
         all.reject { snoozed.include?(it.key) }.sort_by { [ URGENCIES.keys.index(it.urgency), it.mine ? 0 : 1 ] }
       end
     end
@@ -56,17 +56,17 @@ module AccountManagement
       def replies
         Replies.waiting(client_ids).map do |request|
           late = Replies.late?(request)
-          item("reply:#{request.id}", late ? :overdue : :today, :request, "Answer: #{request.subject}",
-            "from #{request.sender_name.presence || request.client.name}, #{late ? "was due" : "due"} by #{I18n.l Replies.due_at(request), format: :short}",
-            @routes.request_path(request), request.client)
+          item("reply:#{request.id}", late ? :overdue : :today, :request, "Answer: #{request.title}",
+            "from #{request.requester_name.presence || request.client.name}, #{late ? "was due" : "due"} by #{I18n.l Replies.due_at(request), format: :short}",
+            @routes.todo_path(request), request.client)
         end
       end
 
-      def commitments
-        ::Commitment.open.where(owner_kind: "us", client_id: client_ids).where(due_on: ..(Date.current + 7)).includes(:client).ordered.map do |commitment|
-          urgency = commitment.due_on < Date.current ? :overdue : (commitment.due_on == Date.current ? :today : :week)
-          item("commitment:#{commitment.id}", urgency, :commitment, commitment.description, "ours, due #{commitment.due_on.to_fs(:long)}",
-            @routes.client_path(commitment.client, tab: "commitments"), commitment.client)
+      # Their work on these clients that's due within the week (or overdue): what they promised.
+      def work
+        ::Todo.open.assigned_to(@user).where(client_id: client_ids).where(due_on: ..(Date.current + 7)).includes(:client).order(:due_on).map do |todo|
+          urgency = todo.due_on < Date.current ? :overdue : (todo.due_on == Date.current ? :today : :week)
+          item("work:#{todo.id}", urgency, :work, todo.title, "due #{todo.due_on.to_fs(:long)}", @routes.todo_path(todo), todo.client)
         end
       end
 

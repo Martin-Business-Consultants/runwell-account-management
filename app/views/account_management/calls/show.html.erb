@@ -19,7 +19,7 @@
             <li class="flex align-center gap-half txt-small" data-filter-target="item">
               <%= link_to todo_path(todo), class: "txt-ink txt-align-start min-width flex-item-grow" do %>
                 <strong><%= todo.title %></strong>
-                <div class="txt-x-small txt-subtle"><%= todo.engagement.ref %> <%= todo.engagement.title %><% if todo.due_on %> · due <%= l todo.due_on, format: :short %><% end %></div>
+                <div class="txt-x-small txt-subtle"><% if todo.engagement %><%= todo.engagement.ref %> <%= todo.engagement.title %><% else %><%= @client.name %><% end %><% if todo.due_on %> · due <%= l todo.due_on, format: :short %><% end %></div>
               <% end %>
               <%= person_tag todo.owner, fallback: "Unassigned" %>
               <%= status_tag todo.status.humanize %>
@@ -29,22 +29,23 @@
       </section>
     <% end %>
 
-    <% if (commitments = @call.commitments).any? %>
+    <% if (promises = @call.promises).any? %>
       <section class="settings__section">
         <header>
-          <h2 class="divider">Commitments <span class="txt-subtle"><%= commitments.size %></span></h2>
+          <h2 class="divider">Their promises <span class="txt-subtle"><%= promises.size %></span></h2>
         </header>
         <ul class="settings__scrollable-list">
-          <% commitments.each do |commitment| %>
-            <%# herb:key commitment.id %>
+          <% promises.each do |promise| %>
+            <%# herb:key promise.id %>
             <li class="flex align-center gap-half txt-small">
               <div class="txt-align-start min-width flex-item-grow">
-                <strong><%= commitment.description %></strong>
-                <div class="txt-x-small txt-subtle"><%= commitment.owner_kind == "us" ? "ours" : "theirs" %> · due <%= l commitment.due_on, format: :short %></div>
+                <strong><%= promise.description %></strong>
+                <div class="txt-x-small txt-subtle"><%= promise.owner_name %> · due <%= l promise.due_on, format: :short %></div>
               </div>
-              <% if commitment.user %>
-                <%= person_tag commitment.user %>
+              <% if promise.open? %>
+                <%= render "account_management/promises/resolve", promise: promise %>
               <% end %>
+              <%= status_tag promise.open? ? (promise.overdue? ? "Overdue" : "Open") : promise.resolution.humanize %>
             </li>
           <% end %>
         </ul>
@@ -54,12 +55,15 @@
     <% if (requests = @call.requests).any? %>
       <section class="settings__section">
         <header>
-          <h2 class="divider">Requests to triage <span class="txt-subtle"><%= requests.size %></span></h2>
+          <h2 class="divider">Requests <span class="txt-subtle"><%= requests.size %></span></h2>
         </header>
         <ul class="settings__scrollable-list">
           <% requests.each do |request| %>
             <%# herb:key request.id %>
-            <li class="txt-small"><%= link_to request.subject, request_path(request), class: "txt-link" %></li>
+            <li class="flex align-center gap-half txt-small">
+              <%= link_to request.title, todo_path(request), class: "txt-link min-width flex-item-grow" %>
+              <%= person_tag request.owner, fallback: "Unassigned" %>
+            </li>
           <% end %>
         </ul>
       </section>

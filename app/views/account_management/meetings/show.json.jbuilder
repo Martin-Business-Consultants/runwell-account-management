@@ -2,10 +2,9 @@ json.summary "#{@meeting.title}, #{@meeting.when_label}: #{@meeting.state.humani
 json.partial! "account_management/meetings/meeting", meeting: @meeting
 json.agenda agent_text(@meeting.agenda)
 json.recap agent_text(@meeting.recap)
-json.action_items @meeting.commitments.order(:due_on) do |commitment|
-  json.merge! agent_ref(commitment)
-  json.extract! commitment, :description, :due_on, :resolution
-  json.owner commitment.owner
-  json.owner_name commitment.owner_name
+json.action_items @meeting.action_items do |item|
+  json.merge! agent_ref(item.todo) if item.todo
+  json.whose item.ours? ? "ours" : "theirs"
+  json.extract! item, :description, :due_on, :owner_name, :state_label
 end
 json.recipients(@meeting.recipients.map { { "id" => it.id, "name" => it.name, "email" => it.email } })

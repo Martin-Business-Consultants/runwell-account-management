@@ -1,15 +1,15 @@
 module AccountManagement
   # Everything needed to turn a client call's notes into work, for an AI harness (debrief_call) or
   # to paste into one (Copy for AI on the client's tab): the client's people, its open engagements
-  # with their agreed scope and current work, a meeting the call may have been, what we're waiting
+  # with their sections and current work, a meeting the call may have been, what we're waiting
   # on them for, the team with each person's expertise, open work and whether they're away, and
   # how to choose an engagement and an owner for each item.
   class Debrief
     STEPS = <<~TEXT
-      1. Read the notes. List every concrete action: things we'll do (todos), dated promises (commitments), new asks (requests), and how the client is doing (health).
-      2. Each todo goes on the open engagement whose agreed scope covers it (match its scope items; pass scope_item_id when one fits). Something nobody agreed to is a request, not a todo.
+      1. Read the notes. List every concrete action: things we'll do (todos, a dated promise of ours being a todo with a due_on), what the client said they'd do (promises), new asks (requests), and how the client is doing (health).
+      2. Each todo goes on the open engagement whose sections cover it (pass scope_item_id when one fits), or straight on the client (no engagement) when it's about the relationship rather than an engagement. Something no engagement covers is a request, not a todo.
       3. Give each todo an owner by expertise: the person whose tags fit the work (code, design, seo, ads…). Among equals, the one with less open work. Client-facing or coordinating work goes to the client's lead. Never someone who's away. If nobody fits, the lead, and say so.
-      4. Commitments: what the client promised (owner_kind client, contact_id when it's one person) and dated promises we made to them (owner_kind us, user_id). Every commitment has a due_on.
+      4. Promises: what the client said they'd do, with contact_id when it's one person. Every promise has a due_on.
       5. Due dates only when the notes give or clearly imply one. client_visible only for work the client should see in their portal.
       6. Call record_call with preview: true and show the person the plan as a short table (engagement, todo, owner, due). Change what they say, then call record_call without preview. It records the notes as a call note, logs the contact and makes everything at once.
     TEXT
@@ -40,8 +40,8 @@ module AccountManagement
       lines << "" << "## Open engagements" << ""
       data[:engagements].each do |engagement|
         lines << "### #{engagement[:ref]} #{engagement[:title]} (#{engagement[:label]}, #{engagement[:state]})" << ""
-        lines << "Agreed scope:" if engagement[:scope].any?
-        engagement[:scope].each { lines << "- #{it[:description]} (scope_item_id #{it[:id]})" }
+        lines << "Sections:" if engagement[:sections].any?
+        engagement[:sections].each { lines << "- #{it[:description]} (scope_item_id #{it[:id]})" }
         lines << "" << "Open work:" if engagement[:open_work].any?
         engagement[:open_work].each { lines << "- #{it[:title]}: #{it[:owner] || "nobody"}, #{it[:status]}#{", due #{it[:due_on]}" if it[:due_on]}" }
         lines << ""
@@ -76,10 +76,10 @@ module AccountManagement
       end
 
       def engagements
-        @client.engagements.where(closed_at: nil).includes(:todos, agreement_versions: %i[scope_items approval]).order(:ref).map do |engagement|
+        @client.engagements.where(closed_at: nil).includes(:todos, :scope_items).order(:ref).map do |engagement|
           open = engagement.todos.reject { it.status == "done" }.sort_by { [ it.due_on || Date.new(9999), it.id ] }
           { ref: engagement.ref, title: engagement.title, label: engagement.label, shape: engagement.shape, state: engagement.state,
-            scope: engagement.agreed_items.map { { id: it.id, description: it.description } },
+            sections: engagement.scope_items.sort_by(&:position).map { { id: it.id, description: it.description } },
             open_work: open.first(25).map { { id: it.id, title: it.title, owner: it.owner&.display_name, status: it.status, due_on: it.due_on } } }
         end
       end
@@ -104,8 +104,8 @@ module AccountManagement
         {
           call: { summary: "Weekly check-in", happened_on: Date.current, channel: "call", contact_ids: [ @client.contacts.active.first&.id ].compact, notes: "<the notes, as given>" },
           todos: [ { engagement: engagement&.ref || "P-1", title: "…", owner_id: lead&.user_id || 0, due_on: Date.current + 7, scope_item_id: nil, client_visible: false }.compact ],
-          commitments: [ { description: "Send the new logo files", owner_kind: "client", due_on: Date.current + 3 } ],
-          requests: [ { subject: "Wants a landing page for the spring sale", body: "…" } ],
+          promises: [ { description: "Send the new logo files", due_on: Date.current + 3 } ],
+          requests: [ { title: "Wants a landing page for the spring sale", description: "…" } ],
           health: { status: "on_track" },
           preview: true
         }

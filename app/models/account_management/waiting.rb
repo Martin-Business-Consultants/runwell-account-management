@@ -1,6 +1,6 @@
 module AccountManagement
-  # What we're waiting on a client for: their overdue commitments and agreements sent and not yet
-  # decided. Meeting agendas and call debriefs read it.
+  # What we're waiting on a client for: their overdue promises. Meeting agendas and call debriefs
+  # read it.
   module Waiting
     extend self
 
@@ -9,24 +9,16 @@ module AccountManagement
     end
 
     def items(client_ids)
-      commitments(client_ids) + approvals(client_ids)
+      promises(client_ids)
     end
 
     def for_client(client) = items([ client.id ])
 
     private
-      def commitments(ids)
-        ::Commitment.overdue.where(owner_kind: "client", client_id: ids).includes(:client, :contact).ordered.map do |commitment|
-          Item.new(commitment, commitment.client, commitment.description, commitment.due_on.in_time_zone,
-            "theirs#{" (#{commitment.contact.name})" if commitment.contact}, due #{commitment.due_on.to_fs(:long)}")
-        end
-      end
-
-      def approvals(ids)
-        ::AgreementVersion.joins(:engagement).where(engagements: { client_id: ids }).where.not(sent_at: nil)
-          .where(superseded_by_id: nil).where.missing(:approval).includes(engagement: :client).map do |version|
-          Item.new(version, version.engagement.client, "Decision on #{version.engagement.title} (#{version.label.downcase})", version.sent_at,
-            "sent #{version.sent_at.to_date.to_fs(:long)}, not yet decided")
+      def promises(ids)
+        Promise.overdue.where(client_id: ids).includes(:client, :contact).ordered.map do |promise|
+          Item.new(promise, promise.client, promise.description, promise.due_on.in_time_zone,
+            "theirs#{" (#{promise.contact.name})" if promise.contact}, due #{promise.due_on.to_fs(:long)}")
         end
       end
   end

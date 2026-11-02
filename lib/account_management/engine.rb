@@ -5,7 +5,9 @@ module AccountManagement
   # Clients shows each one's lead and backup (Lead), its health this week (HealthCheck) and when it
   # last heard from us (Pulse). Every contact is logged (Touch), and requests are answered within a
   # business day (Replies). Meetings carry an agenda before and a recap after, on a rhythm
-  # (MeetingSeries). After a call, an AI harness debriefs it into work (Debrief, Call::Plan). Owns
+  # (MeetingSeries). After a call, an AI harness debriefs it into work (Debrief, Call::Plan). What
+  # we promise is core work with a due date; what a client promises is kept here (Promise), since
+  # the core doesn't keep it (from 3.0). Owns
   # its tables and reaches the core only through Runwell::Plugins and load hooks. docs/guide.md is
   # the user's guide.
   #
@@ -40,6 +42,7 @@ module AccountManagement
             resource :debrief, only: :show
             resources :calls, only: :create
           end
+          resources :promises, only: :update
           resources :touches, only: %i[index create destroy]
           resource :snooze, only: %i[create destroy]
         end
@@ -58,6 +61,7 @@ module AccountManagement
         has_many :account_meeting_series, class_name: "AccountManagement::MeetingSeries", dependent: :destroy
         has_many :account_calls, class_name: "AccountManagement::Call", dependent: :destroy
         has_many :account_meetings, class_name: "AccountManagement::Meeting", dependent: :destroy
+        has_many :account_promises, class_name: "AccountManagement::Promise", dependent: :delete_all
         before_destroy { AccountManagement::Engine.clear_retired_rows(self) }
       end
       ActiveSupport.on_load(:runwell_engagement) do
@@ -80,7 +84,7 @@ module AccountManagement
 
     config.to_prepare do
       Runwell::Plugins.register :account_management, name: "Account management", version: AccountManagement::VERSION, author: "Runwell",
-        enabled_by_default: false, requires: ">= 2.21.0", homepage: "https://github.com/Martin-Business-Consultants/runwell-account-management",
+        enabled_by_default: false, requires: ">= 3.0.0", homepage: "https://github.com/Martin-Business-Consultants/runwell-account-management",
         description: "Keeps every client in play for the people who look after them: a Today list of what needs you, each client’s lead, health and last contact, every contact logged, meetings with agendas and recaps, and call notes debriefed into work by AI."
       Runwell::Plugins.nav :account_management, "Accounts", -> { account_management_root_path if AccountManagement::Member.active?(Current.user) }
       Runwell::Plugins.settings :account_management, "Account management", -> { account_management_settings_path }
@@ -94,8 +98,8 @@ module AccountManagement
         items: ->(user) { AccountManagement::Attention.items(user) }
       Runwell::Plugins.agent_workflow :account_management, "Debrief a client call", <<~TEXT if Runwell::Plugins.respond_to?(:agent_workflow)
         When someone shares notes from a call with a client (pasted, or a file), turn them into work:
-        1. Find the client (`search`), then `debrief_call --client_id <id>`: its people, open engagements with agreed scope, open work, and the team with expertise and workload.
-        2. Plan todos (each on the engagement whose scope covers it, owner by expertise, less open work breaks ties, never someone away), commitments (theirs and ours, dated), requests (asks outside the agreed scope) and health.
+        1. Find the client (`search`), then `debrief_call --client_id <id>`: its people, open engagements with their sections, open work, and the team with expertise and workload.
+        2. Plan todos (each on the engagement whose scope covers it, or on the client, owner by expertise, less open work breaks ties, never someone away; a dated promise of ours is a todo with a due date), promises (what the client said they'd do, dated), requests (asks outside what its engagements cover) and health.
         3. `record_call` with `preview: true`; show the person the plan as a table (engagement, todo, owner, due) and change what they say.
         4. `record_call` without preview. It records the notes, logs the contact and makes everything at once.
       TEXT

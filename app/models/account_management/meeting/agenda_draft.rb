@@ -1,7 +1,7 @@
 module AccountManagement
   # A meeting's first agenda from the records, for the client's eyes: what's still open from last
-  # time, what we owe and what they owe, decisions waiting on them, and what's coming up. And the
-  # recap's skeleton after: the agenda's points, then decisions and action items to fill in.
+  # time, what we'll deliver soon (work they can see) and what they promised. And the recap's
+  # skeleton after: the agenda's points, then decisions and action items to fill in.
   class Meeting::AgendaDraft
     include ActionView::Helpers::TagHelper, ActionView::Helpers::OutputSafetyHelper
 
@@ -12,19 +12,17 @@ module AccountManagement
 
     def agenda_html
       previous = Meeting.live.where(client: @client).where(starts_at: ...@meeting.starts_at).where.not(id: @meeting.id).order(starts_at: :desc).first
-      from_last = previous ? previous.commitments.open.ordered : ::Commitment.none
-      ours = @client.commitments.open.where(owner_kind: "us").where.not(id: from_last.select(:id)).where(due_on: ..(@meeting.starts_at.to_date + 14)).ordered
-      theirs = @client.commitments.open.where(owner_kind: "client").where.not(id: from_last.select(:id)).ordered
-      decisions = Waiting.for_client(@client).select { it.record.is_a?(::AgreementVersion) }
-      scoped = @meeting.engagement ? [ @meeting.engagement ] : @client.engagements.where(closed_at: nil).to_a
-      next_up = ::Todo.where(engagement: scoped, client_visible: true, completed_at: nil).where(due_on: ..(@meeting.starts_at.to_date + 14)).order(:due_on)
+      from_last = previous ? previous.action_items.select(&:open?) : []
+      last_todos = from_last.filter_map(&:todo).map(&:id)
+      last_promises = from_last.filter_map(&:promise).map(&:id)
+      work = @meeting.engagement ? ::Todo.where(engagement: @meeting.engagement) : ::Todo.where(client: @client)
+      ours = work.open.client_visible.where.not(id: last_todos).where(due_on: ..(@meeting.starts_at.to_date + 14)).order(:due_on)
+      theirs = Promise.open.where(client: @client).where.not(id: last_promises).ordered
 
       safe_join([
-        lines("Open from last time#{" (#{previous.when_label})" if previous}", from_last.map { "#{it.description} (#{owner(it)}, due #{it.due_on.to_fs(:long)})" }),
-        lines("From us", ours.map { "#{it.description}, due #{it.due_on.to_fs(:long)}" }),
+        lines("Open from last time#{" (#{previous.when_label})" if previous}", from_last.map { "#{it.description} (#{it.ours? ? "us" : it.owner_name}#{", due #{it.due_on.to_fs(:long)}" if it.due_on})" }),
+        lines("From us", ours.map { "#{it.title}, due #{it.due_on.to_fs(:long)}" }),
         lines("From you", theirs.map { "#{it.description}, due #{it.due_on.to_fs(:long)}" }),
-        lines("Decisions we need", decisions.map(&:label)),
-        lines("Coming up", next_up.map { "#{it.title}#{", due #{it.due_on.to_fs(:long)}" if it.due_on}" }),
         tag.p(tag.strong("Anything else"))
       ].compact)
     end
@@ -39,8 +37,6 @@ module AccountManagement
     end
 
     private
-      def owner(commitment) = commitment.owner_kind == "us" ? "us" : (commitment.contact&.name || "you")
-
       def lines(heading, items)
         return if items.empty?
 

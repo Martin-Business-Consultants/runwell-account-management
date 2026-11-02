@@ -8,11 +8,12 @@ Here's the agenda for <%= @meeting.title %> on <%= l @meeting.starts_at.in_time_
 Thanks for your time at <%= @meeting.title %>. Here's what we covered and agreed.
 
 <%= agent_text(@meeting.recap) %>
-<% if @meeting.commitments.any? -%>
+<% items = @meeting.action_items -%>
+<% if items.any? -%>
 
 Action items:
-<% @meeting.commitments.order(:due_on).each do |commitment| -%>
-- <%= commitment.description %>: <%= commitment.owner_name %>, by <%= l commitment.due_on, format: :long %>
+<% items.each do |item| -%>
+- <%= item.description %>: <%= item.owner_name %><% if item.due_on %>, by <%= l item.due_on, format: :long %><% end %>
 <% end -%>
 <% end -%>
 <% end -%>

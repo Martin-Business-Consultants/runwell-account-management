@@ -1,8 +1,8 @@
 module AccountManagement
   # A client meeting and the paper around it: the agenda sent at least a day ahead, and the recap
   # (decisions, then action items with owners and dates) sent within a day after. Sending stamps
-  # the time, for good: a sent agenda or recap never changes. Action items are core commitments,
-  # so they show on the client and on home.
+  # the time, for good: a sent agenda or recap never changes. Action items are work we'll do
+  # (core todos, so they show on the client and on home) or the client's promises (Promise).
   #
   # Its state is derived: planned, then agenda due (a day or less before the agenda's deadline),
   # then recap due once it has started, then done when the recap is out. Or cancelled.
@@ -18,7 +18,6 @@ module AccountManagement
     belongs_to :created_by, class_name: "::User", optional: true
     belongs_to :series, class_name: "AccountManagement::MeetingSeries", optional: true, inverse_of: :meetings
     has_many :items, class_name: "AccountManagement::MeetingItem", dependent: :destroy
-    has_many :commitments, through: :items
 
     attribute :starts_on, :date
     attribute :starts_at_time, :string
@@ -117,13 +116,26 @@ module AccountManagement
       end
     end
 
+    # The meeting's action items, soonest first (preloads what each shows).
+    def action_items = items.includes(todo: :owner, promise: %i[client contact]).sort_by { [ it.due_on || Date.new(9999), it.id ] }
+
+    # Whose it is: "us" or "user:<id>" makes work (ours, with that person or the meeting's owner
+    # leading it), "client" or "contact:<id>" a promise of theirs.
     def add_action_item!(description:, owner:, due_on:, actor: Current.user, source: Current.source)
+      kind, id = owner.to_s.split(":", 2)
       transaction do
-        commitment = client.commitments.create!(description: description, owner: owner, due_on: due_on,
-          engagement: engagement, source: "meeting: #{title}")
-        commitment.record_event!("commitment.added", actor: actor, source: source, payload: { meeting: title })
-        items.create!(commitment: commitment)
-        commitment
+        item = if %w[client contact].include?(kind)
+          promise = Promise.create!(client: client, engagement: engagement, contact: (client.contacts.find(id) if kind == "contact"),
+            description: description, due_on: due_on, created_by: actor&.person, source: "meeting: #{title}")
+          items.create!(promise: promise)
+        else
+          lead = kind == "user" ? ::User.active.people.find(id) : (self.owner || actor&.person)
+          todo = ::Todo.create!(engagement: engagement, client: client, title: description, owner: lead, due_on: due_on,
+            created_by: actor&.person, source: source || "app")
+          todo.record_event!("todo.created", actor: actor, source: source || "app", payload: { from: label })
+          items.create!(todo: todo)
+        end
+        item
       end
     end
 

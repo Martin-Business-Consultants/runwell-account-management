@@ -71,23 +71,31 @@
 
     <section class="settings__section">
       <header>
-        <h2 class="divider">Action items <span class="txt-subtle"><%= @meeting.commitments.size.nonzero? %></span></h2>
+        <% action_items = @meeting.action_items %>
+        <h2 class="divider">Action items <span class="txt-subtle"><%= action_items.size.nonzero? %></span></h2>
       </header>
       <ul class="settings__scrollable-list">
-        <% @meeting.commitments.includes(:user, :contact).order(:due_on).each do |commitment| %>
-          <%# herb:key commitment.id %>
+        <% action_items.each do |item| %>
+          <%# herb:key item.id %>
           <li class="flex align-center gap-half">
             <div class="txt-align-start min-width">
-              <strong><%= commitment.description %></strong>
-              <div class="txt-x-small txt-subtle"><%= commitment.owner_name %> · by <%= l commitment.due_on, format: :short %></div>
+              <% if item.todo %>
+                <%= link_to item.description, todo_path(item.todo), class: "txt-ink font-weight-bold" %>
+              <% else %>
+                <strong><%= item.description %></strong>
+              <% end %>
+              <div class="txt-x-small txt-subtle"><%= item.owner_name %><% if item.due_on %> · by <%= l item.due_on, format: :short %><% end %></div>
             </div>
             <hr class="separator--horizontal flex-item-grow txt-subtle" aria-hidden="true">
-            <%= status_tag commitment.open? ? (commitment.overdue? ? "Overdue" : "Open") : commitment.resolution.humanize %>
+            <% if item.promise&.open? %>
+              <%= render "account_management/promises/resolve", promise: item.promise %>
+            <% end %>
+            <%= status_tag item.state_label %>
           </li>
         <% end %>
       </ul>
-      <% if @meeting.commitments.empty? %>
-        <p class="txt-small txt-subtle margin-none">None yet. Each one becomes a commitment on the <%= term(:client).downcase %>, with an owner and a date, and is listed in the recap.</p>
+      <% if action_items.empty? %>
+        <p class="txt-small txt-subtle margin-none">None yet. Ours become <%= term(:work).downcase %> on the <%= term(:client).downcase %> and theirs are kept here, each with an owner and a date, and all are listed in the recap.</p>
       <% end %>
       <% unless @meeting.recap_sent? || @meeting.cancelled? %>
         <div class="section-actions">
@@ -96,7 +104,7 @@
             <%= form_with url: account_management_meeting_action_items_path(@meeting), scope: :action_item, class: "flex flex-column gap-half txt-small margin-block-start-half" do |form| %>
               <%= form.text_field :description, required: true, class: "input full-width", autocomplete: "off", placeholder: "What will be done", aria: { label: "What will be done" } %>
               <div class="flex flex-wrap gap-half">
-                <%= form.select :owner, grouped_options_for_select(commitment_owner_options(@meeting.client), @meeting.owner ? "user:#{@meeting.owner.id}" : "us"), {}, class: "input input--select flex-item-grow", aria: { label: "Whose" } %>
+                <%= form.select :owner, grouped_options_for_select(account_action_owner_options(@meeting.client), @meeting.owner ? "user:#{@meeting.owner.id}" : "us"), {}, class: "input input--select flex-item-grow", aria: { label: "Whose" } %>
                 <%= date_input form, :due_on, required: true, value: Date.current + 7, class: "input flex-item-grow", aria: { label: "By" } %>
               </div>
               <button type="submit" class="btn btn--link txt-small center">Add action item</button>
@@ -149,7 +157,7 @@
           <%= render "account_management/meetings/send", meeting: @meeting, paper: :recap %>
         <% end %>
       <% when "done" %>
-        <p class="txt-small margin-none">Done. Its action items are commitments now: they show on the <%= term(:client).downcase %> and on home as they come due.</p>
+        <p class="txt-small margin-none">Done. Its action items of ours are <%= term(:work).downcase %> now: they show on the <%= term(:client).downcase %> and on home as they come due.</p>
       <% when "cancelled" %>
         <p class="txt-small margin-none">Cancelled <%= l @meeting.cancelled_at, format: :short %>.</p>
       <% end %>
@@ -160,7 +168,7 @@
         <% if @meeting.agenda_sent? %>
           <%= render "layouts/shared/confirm", trigger: "Cancel the meeting", title: "Cancel #{@meeting.title}?", body: "Its agenda is out, so it stays on the record as cancelled.", button: "Cancel it", path: cancel_account_management_meeting_path(@meeting), method: :post, icon: "close" %>
         <% elsif can?(:delete_records) %>
-          <%= render "layouts/shared/confirm", trigger: "Delete the meeting", title: "Delete #{@meeting.title}?", body: "Nothing went out yet, so it goes for good. Its action items stay as commitments.", button: "Delete it", path: account_management_meeting_path(@meeting) %>
+          <%= render "layouts/shared/confirm", trigger: "Delete the meeting", title: "Delete #{@meeting.title}?", body: "Nothing went out yet, so it goes for good. Its action items of ours stay as work.", button: "Delete it", path: account_management_meeting_path(@meeting) %>
         <% end %>
       </section>
     <% end %>

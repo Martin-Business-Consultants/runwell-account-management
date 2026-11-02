@@ -1,5 +1,5 @@
 module AccountManagement
-  # The one person who answers for a client: its meetings, its commitments and its health. Also
+  # The one person who answers for a client: its meetings, its promises and its health. Also
   # where the client's account settings live: a backup who covers while the lead is away, and how
   # often the client should hear from us.
   class Lead < ::ApplicationRecord

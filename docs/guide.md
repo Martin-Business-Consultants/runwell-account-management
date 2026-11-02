@@ -7,8 +7,8 @@ sidebar:
 2. **Clients**: who leads each one, how it's doing this week, and when it last heard from us.
    Riskiest first.
 3. **Contacts**: every call, email, text and visit, so a client never goes quiet unnoticed.
-4. **Meetings**: an agenda a day ahead, a recap within a day after, and action items that become
-   commitments.
+4. **Meetings**: an agenda a day ahead, a recap within a day after, and action items: ours become
+   work, theirs are kept as their promises.
 5. **Calls**: your notes from a call, debriefed by AI into work on the right engagements, owned by
    the right people.
 
@@ -33,11 +33,12 @@ ones they lead or back up are always theirs.
 - **Work Today from the top**: Overdue, Today, This week, then Keep an eye on. Each item links to
   where you act on it. Not ready? **Snooze** it (the bell): it comes back on its own.
 - **Log every contact.** Press **a** for quick actions, then **Contact**, or use **Log a contact**
-  on the client's tab. Meetings, call and email notes, requests and agreements count on their own;
+  on the client's tab. Meetings, call and email notes, requests count on their own;
   internal notes don't. A client is quiet after 7 days without us, unless its lead sets another
   cadence.
-- **Answer requests within a business day.** A request is answered when it's triaged, or when you
-  log a contact with that client after it came in. One that came in on Friday is due by the end of
+- **Answer requests within a business day.** A request (something the client asked for that
+  nobody has taken on yet) is answered when someone takes it on, or when you log a contact with
+  that client after it came in. One that came in on Friday is due by the end of
   Monday.
 - **By the end of Thursday, set each client's health**: on track, at risk or off track, with a line
   saying why (needed unless it's on track).
@@ -46,24 +47,26 @@ ones they lead or back up are always theirs.
 
 1. **Plan it**, or set a rhythm (every week, every two weeks, monthly) on the client's tab so the
    next one is always planned.
-2. **Draft the agenda from the records**: what's open from last time, what each side owes,
+2. **Draft the agenda from the records**: what's open from last time, what we'll deliver soon and what they promised,
    decisions we need from them, and what's coming up. Add what the records can't know and send it
    **a day ahead**.
 3. **After it, start the recap from the agenda**, fill in the decisions, add each action item with
-   an owner and a date (they become commitments), and send it **within a day**.
+   an owner and a date (ours become work, theirs are kept as their promises), and send it **within a
+   day**.
 
 ## After every call: debrief it
 
 1. Paste your notes into your AI app (Claude Code with the `runwell` CLI, or any app connected to
    Runwell) and say **"debrief this call with <client>"**. It reads the client's open engagements
-   and their agreed scope, its people, and the team's expertise and workload (`debrief_call`).
-2. **It shows you the plan first**: each todo with its engagement, owner and due date, the
-   commitments, requests for anything outside the agreed scope, and health. Say what to change.
+   and their sections, its people, and the team's expertise and workload (`debrief_call`).
+2. **It shows you the plan first**: each todo with its engagement, owner and due date (a date we
+   promised is a todo's due date), what the client promised, requests for anything no engagement
+   covers, and health. Say what to change.
 3. **Then it records the call** (`record_call`): the notes, the contact and every item at once,
    listed under **Calls**.
 
-Each todo goes on the engagement whose agreed scope covers it; an ask nobody agreed to becomes a
-request to triage. The owner is whoever's expertise fits, then whoever has less open work;
+Each todo goes on the engagement whose sections cover it, or on the client; an ask no engagement
+covers becomes a request: work on the client nobody has taken on yet. The owner is whoever's expertise fits, then whoever has less open work;
 client-facing work goes to the lead; nobody who's away. No AI app to hand? The client's tab has
 **Debrief a call** with **Copy for AI**.
 

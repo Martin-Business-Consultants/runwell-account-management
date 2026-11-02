@@ -1,0 +1,5 @@
+<%# locals: (promise:) %>
+<div class="flex gap-half flex-item-no-shrink">
+  <%= button_to "Kept", account_management_promise_path(promise), method: :patch, params: { resolution: "done" }, class: "btn txt-x-small" %>
+  <%= button_to "Missed", account_management_promise_path(promise), method: :patch, params: { resolution: "missed" }, class: "btn txt-x-small" %>
+</div>

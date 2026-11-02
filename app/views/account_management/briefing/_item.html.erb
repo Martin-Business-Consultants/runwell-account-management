@@ -16,10 +16,10 @@
     </div>
     <%= account_status_tag item.kind == :quiet ? "quiet" : "attention" %>
   <% end %>
-<% when ::Request %>
-  <%= link_to request_path(item), class: "txt-ink txt-align-start flex align-center gap-half" do %>
+<% when ::Todo %>
+  <%= link_to todo_path(item), class: "txt-ink txt-align-start flex align-center gap-half" do %>
     <div class="min-width flex-item-grow">
-      <strong>Answer: <%= item.subject %></strong>
+      <strong>Answer: <%= item.title %></strong>
       <div class="txt-x-small txt-subtle"><%= item.client&.name %> · <%= AccountManagement::Replies.late?(item) ? "was due" : "due" %> by <%= l AccountManagement::Replies.due_at(item), format: :short %></div>
     </div>
     <%= account_status_tag AccountManagement::Replies.late?(item) ? "late" : "attention" %>

@@ -9,7 +9,7 @@ module AccountManagement
       params: { record: "string!", meeting: { title: "string!", starts_on: "date!", starts_at_time: "string", owner_id: "integer", agenda: "text" } },
       next_tools: %i[send_meeting_agenda]
     agent_tool :show_meeting, on: :show, title: "Show a client meeting",
-      description: "Its agenda and recap, when each was sent and whether on time, and its action items (commitments)."
+      description: "Its agenda and recap, when each was sent and whether on time, and its action items: our work (todos) and the client's promises."
     agent_tool :update_meeting, on: :update, title: "Change a client meeting",
       description: "A sent agenda or recap never changes, and the time can't move once the agenda is out.",
       params: { meeting: { title: "string", starts_on: "date", starts_at_time: "string", owner_id: "integer", agenda: "text", recap: "text" } }
@@ -21,7 +21,7 @@ module AccountManagement
       params: { contact_ids: "integer[]", via: "string" }, confirm: "With contacts, it emails them the recap and its action items. Either way the recap is final once sent."
     agent_tool :draft_meeting_agenda, on: :draft_agenda, title: "Draft a meeting's agenda from the records",
       params: { replace: "boolean" },
-      description: "Fills an empty agenda (until it's sent; replace: true overwrites one already written) with what's open from last time, what we and the client owe, decisions waiting on them and what's coming up. Edit it after with update_meeting."
+      description: "Fills an empty agenda (until it's sent; replace: true overwrites one already written) with what's open from last time, what we and the client owe and what's coming up. Edit it after with update_meeting."
     agent_tool :draft_meeting_recap, on: :draft_recap, title: "Start a meeting's recap from its agenda",
       params: { replace: "boolean" },
       description: "After the meeting, into an empty recap (replace: true overwrites): decisions to fill in, the agenda's points, and room for action items (add_meeting_action_item)."

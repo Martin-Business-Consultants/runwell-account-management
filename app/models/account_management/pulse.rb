@@ -1,7 +1,7 @@
 module AccountManagement
   # When each client last heard from us, or we from them, from everything that counts as
   # contact: logged contacts, meetings held, agendas and recaps sent, call / meeting / email
-  # notes, requests they sent, and agreements sent and their decisions. Internal notes don't
+  # notes, and requests they sent. Internal notes don't
   # count. A client is quiet once that's older than its lead's contact cadence.
   class Pulse
     def initialize(client_ids)
@@ -34,7 +34,6 @@ module AccountManagement
       # Each source of contact: a relation, its client column and its time column.
       def sources
         ids = @client_ids
-        versions = ::AgreementVersion.joins(:engagement).where(engagements: { client_id: ids })
         [
           [ Touch.where(client_id: ids), "account_management_touches.client_id", "account_management_touches.happened_at" ],
           [ Meeting.live.where(client_id: ids, starts_at: ..Time.current), "account_management_meetings.client_id", "account_management_meetings.starts_at" ],
@@ -43,9 +42,7 @@ module AccountManagement
           [ ::Note.where(subject_type: "Client", subject_id: ids).where.not(kind: "internal"), "notes.subject_id", "notes.occurred_at" ],
           [ ::Note.where(subject_type: "Engagement").where.not(kind: "internal").joins("INNER JOIN engagements ON engagements.id = notes.subject_id")
               .where(engagements: { client_id: ids }), "engagements.client_id", "notes.occurred_at" ],
-          [ ::Request.where(client_id: ids), "requests.client_id", "requests.received_at" ],
-          [ versions, "engagements.client_id", "agreement_versions.sent_at" ],
-          [ ::Approval.joins(agreement_version: :engagement).where(engagements: { client_id: ids }), "engagements.client_id", "approvals.decided_at" ]
+          [ Replies.asked(ids), "todos.client_id", "todos.created_at" ]
         ]
       end
   end

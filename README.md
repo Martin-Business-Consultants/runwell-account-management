@@ -31,7 +31,7 @@ Then, in **Settings > Account management**, switch it on for the people who look
 From the command line on the server: `bin/rails "plugins:install[Martin-Business-Consultants/runwell-account-management]"`, then restart
 Runwell.
 
-Needs Runwell 2.21 or later (its pages use the core's section sidebar). A plugin can use only the gems Runwell bundles.
+Needs Runwell 3.0 or later (where commitments and requests became work; a client's promises are kept by this plugin from 0.4). A plugin can use only the gems Runwell bundles.
 
 ## Updating
 
